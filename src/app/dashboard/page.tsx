@@ -1,9 +1,9 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { MealLog, TimelineView, DashboardStats, MOOD_MAP } from '@/types';
 import { computeStats } from '@/lib/services/mealService';
-import { MonoLabel, Badge } from '@/components/ui';
+import { MonoLabel, Badge, CalorieTrendChart } from '@/components/ui';
 
 const VIEWS: TimelineView[] = ['day', 'week', 'month'];
 
@@ -156,6 +156,21 @@ export default function DashboardPage() {
             {/* Stats — real data or static skeleton placeholders */}
             {stats && stats.total_meals > 0 ? (
               <div className="animate-fade-up delay-2 flex flex-col gap-3">
+
+                {/* Calorie Trend Chart */}
+                {(() => {
+                  const today = new Date();
+                  const chartData = Array.from({ length: 7 }, (_, idx) => {
+                    const d = subDays(today, 6 - idx);
+                    const dayStr = format(d, 'yyyy-MM-dd');
+                    const dayLabel = idx === 6 ? 'Today' : format(d, 'EEE');
+                    const cals = meals
+                      .filter(m => format(new Date(m.logged_at), 'yyyy-MM-dd') === dayStr)
+                      .reduce((sum, m) => sum + (m.total_calories || 0), 0);
+                    return { dayLabel, calories: Math.round(cals) };
+                  });
+                  return <CalorieTrendChart data={chartData} />;
+                })()}
 
                 {/* Calories */}
                 <GoalCard label="Calories" value={Math.round(stats.total_calories)} unit="kcal"
