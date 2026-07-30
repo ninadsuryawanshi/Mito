@@ -10,10 +10,18 @@ export default function RulesPage() {
   const [adding, setAdding] = useState(false);
   const [newRule, setNewRule] = useState('');
   const [saving, setSaving] = useState(false);
+  const [suggestions, setSuggestions] = useState<Array<{ name: string; count: number }>>([]);
 
   async function fetchRules() {
-    const res = await fetch('/api/rules');
-    const { rules: r } = await res.json();
+    const [rulesRes, suggRes] = await Promise.all([
+      fetch('/api/rules'),
+      fetch('/api/rules/suggestions').catch(() => null),
+    ]);
+    const { rules: r } = await rulesRes.json();
+    if (suggRes) {
+      const { suggestions: s } = await suggRes.json().catch(() => ({ suggestions: [] }));
+      setSuggestions(s || []);
+    }
     setRules(r || []);
     setLoading(false);
   }
@@ -111,6 +119,35 @@ export default function RulesPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pattern Suggestions */}
+      {suggestions.length > 0 && (
+        <div className="mt-10 animate-fade-up">
+          <MonoLabel className="mb-3 block">Patterns in your log</MonoLabel>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {suggestions.map((sugg) => (
+              <div key={sugg.name} className="bg-[var(--surface2)] border border-[var(--border)] rounded-2xl p-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs text-[var(--text)] font-medium" style={{ fontFamily: 'Syne, serif' }}>
+                    Logged &quot;{sugg.name}&quot; {sugg.count} times
+                  </p>
+                  <p className="text-[10px] font-mono text-[var(--muted)] mt-0.5">Want to track or limit this item?</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setNewRule(`limit ${sugg.name}`);
+                    setAdding(true);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="shrink-0 px-3 py-1.5 rounded-xl bg-[var(--surface)] border border-[var(--accent)] text-[var(--accent)] text-xs font-mono font-medium hover:bg-[var(--accent)] hover:text-[#0a0908] transition-all"
+                >
+                  + Rule
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
