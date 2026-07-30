@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Input } from '@/components/ui';
+import { Button, Input, LogoMark } from '@/components/ui';
 import { computeWHORecommendations } from '@/lib/ai/gemini';
 
 const ACTIVITY_OPTIONS = [
@@ -79,8 +79,8 @@ export default function OnboardingPage() {
         {/* Step 0 — Brand Moment */}
         {step === 0 && (
           <div className="animate-scale-in bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-8 text-center flex flex-col items-center shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
-            <div className="w-16 h-16 rounded-2xl bg-[var(--accent)] flex items-center justify-center mb-6 shadow-[0_0_30px_var(--accent-glow)] animate-pulse">
-              <span className="text-[#0a0908] font-bold text-3xl" style={{ fontFamily: 'Syne, serif' }}>M</span>
+            <div className="mb-6 animate-pulse">
+              <LogoMark size={56} />
             </div>
             <h1 className="text-2xl font-bold mb-3 tracking-tight" style={{ fontFamily: 'Syne, serif' }}>
               Your food, reflected.

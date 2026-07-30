@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { LogoMark } from '@/components/ui';
 
 const NAV = [
   { href: '/dashboard', icon: '◎', label: 'Mirror' },
@@ -17,9 +18,7 @@ export default function BottomNav() {
 
       {/* Desktop logo at top */}
       <div className="hidden md:flex flex-col items-center pt-6 pb-4 border-b border-[var(--border)]">
-        <div className="w-9 h-9 rounded-xl bg-[var(--accent)] flex items-center justify-center shadow-[0_0_16px_var(--accent-glow)]">
-          <span className="text-[#0a0908] font-bold text-base" style={{ fontFamily: 'Syne, serif' }}>M</span>
-        </div>
+        <LogoMark size={36} />
       </div>
 
       {/* Nav items */}

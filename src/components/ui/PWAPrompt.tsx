@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui';
+import { Button, LogoMark } from '@/components/ui';
 
 export function PWAPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -62,9 +62,7 @@ export function PWAPrompt() {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--accent)] flex items-center justify-center shrink-0">
-            <span className="text-[#0a0908] font-bold text-base" style={{ fontFamily: 'Syne, serif' }}>M</span>
-          </div>
+          <LogoMark size={36} />
           <div>
             <h4 className="text-sm font-bold text-[var(--text)]" style={{ fontFamily: 'Syne, serif' }}>
               Add Mito to Home Screen

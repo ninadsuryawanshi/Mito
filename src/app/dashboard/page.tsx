@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { format, subDays } from 'date-fns';
 import { MealLog, TimelineView, DashboardStats, MOOD_MAP } from '@/types';
 import { computeStats } from '@/lib/services/mealService';
-import { MonoLabel, Badge, CalorieTrendChart } from '@/components/ui';
+import { MonoLabel, Badge, CalorieTrendChart, LogoMark } from '@/components/ui';
 
 const VIEWS: TimelineView[] = ['day', 'week', 'month'];
 
@@ -57,11 +57,8 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6 animate-fade-up">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-6 h-6 rounded-md bg-[var(--accent)] flex items-center justify-center">
-              <span className="text-[#0a0908] font-bold text-xs" style={{ fontFamily: 'Syne, serif' }}>M</span>
-            </div>
-            <span className="font-bold text-lg" style={{ fontFamily: 'Syne, serif' }}>mito</span>
+          <div className="mb-1">
+            <LogoMark showText size={28} />
           </div>
           <p className="text-xs font-mono text-[var(--muted)] uppercase tracking-widest">{today}</p>
         </div>

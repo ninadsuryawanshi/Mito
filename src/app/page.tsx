@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createServerSupabaseClient } from '@/lib/db/server';
+import { LogoMark } from '@/components/ui';
 
 export default async function RootPage() {
   const supabase = await createServerSupabaseClient();
@@ -19,12 +20,7 @@ export default async function RootPage() {
 
       {/* Header Navigation */}
       <header className="max-w-6xl mx-auto w-full px-6 py-8 flex items-center justify-between relative z-10">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-[var(--accent)] flex items-center justify-center shadow-[0_0_24px_var(--accent-glow)]">
-            <span className="text-[#0a0908] font-bold text-base" style={{ fontFamily: 'Syne, serif' }}>M</span>
-          </div>
-          <span className="font-bold text-xl tracking-tight" style={{ fontFamily: 'Syne, serif' }}>mito</span>
-        </div>
+        <LogoMark showText size={36} />
         <div className="flex items-center gap-6">
           <Link
             href="/login"
