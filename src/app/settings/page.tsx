@@ -227,7 +227,7 @@ export default function SettingsPage() {
           </Section>
 
           <Button size="lg" onClick={handleSave} loading={saving} className="font-mono tracking-wide">
-            {saved ? '✓ Saved' : 'Save Changes'}
+            Save Changes
           </Button>
         </div>
       )}
