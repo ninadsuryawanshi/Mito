@@ -113,7 +113,7 @@ export default function SettingsPage() {
   );
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6">
+    <div className="max-w-3xl mx-auto px-4 py-6">
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-6 animate-fade-up">

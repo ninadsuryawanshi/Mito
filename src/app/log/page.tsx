@@ -150,6 +150,23 @@ export default function LogPage() {
     setAnalysis({ ...analysis, [field]: value });
   }
 
+  function removeItem(index: number) {
+    if (!analysis) return;
+    const item = analysis.items[index];
+    setUserEdited(true);
+    setAnalysis({
+      ...analysis,
+      items: analysis.items.filter((_, i) => i !== index),
+      total_calories:   Math.max(0, analysis.total_calories   - item.calories),
+      total_protein_g:  Math.max(0, analysis.total_protein_g  - item.protein_g),
+      total_carbs_g:    Math.max(0, analysis.total_carbs_g    - item.carbs_g),
+      total_fat_g:      Math.max(0, analysis.total_fat_g      - item.fat_g),
+      total_fiber_g:    Math.max(0, analysis.total_fiber_g    - item.fiber_g),
+      total_sugar_g:    Math.max(0, analysis.total_sugar_g    - item.sugar_g),
+      total_sodium_mg:  Math.max(0, analysis.total_sodium_mg  - item.sodium_mg),
+    });
+  }
+
   // ── DONE ──
   if (step === 'done') return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
@@ -174,7 +191,7 @@ export default function LogPage() {
   );
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6">
+    <div className="max-w-3xl mx-auto px-4 py-6">
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-8 animate-fade-up">
@@ -369,17 +386,29 @@ export default function LogPage() {
           {/* Detected items */}
           <div>
             <MonoLabel className="mb-2 block">Detected Items</MonoLabel>
-            <div className="flex flex-col gap-2">
-              {analysis.items.map((item, i) => (
-                <div key={i} className="bg-[var(--surface2)] border border-[var(--border)] rounded-xl px-4 py-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium" style={{ fontFamily: 'Syne, serif' }}>{item.name}</p>
-                    <p className="text-[10px] font-mono text-[var(--muted)] mt-0.5">{item.quantity} {item.unit}</p>
+            {analysis.items.length === 0 ? (
+              <div className="bg-[var(--surface2)] border border-dashed border-[var(--border)] rounded-xl px-4 py-6 text-center">
+                <p className="text-xs font-mono text-[var(--muted)]">All items removed. Edit the nutrition values manually below.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {analysis.items.map((item, i) => (
+                  <div key={i} className="bg-[var(--surface2)] border border-[var(--border)] rounded-xl px-4 py-3 flex items-center justify-between group">
+                    <div>
+                      <p className="text-sm font-medium" style={{ fontFamily: 'Syne, serif' }}>{item.name}</p>
+                      <p className="text-[10px] font-mono text-[var(--muted)] mt-0.5">{item.quantity} {item.unit} · {Math.round(item.calories)} kcal</p>
+                    </div>
+                    <button
+                      onClick={() => removeItem(i)}
+                      title="Remove this item"
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--muted2)] hover:text-[var(--red)] hover:bg-[rgba(224,92,92,0.08)] transition-all text-base font-bold"
+                    >
+                      ×
+                    </button>
                   </div>
-                  <span className="text-sm font-mono text-[var(--accent)]">{Math.round(item.calories)} kcal</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Nutrition — all editable */}

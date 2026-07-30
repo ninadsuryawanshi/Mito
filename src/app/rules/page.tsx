@@ -43,7 +43,7 @@ export default function RulesPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-8 animate-fade-up">
         <div>
           <h1 className="text-2xl font-bold" style={{ fontFamily: 'Syne, serif' }}>Rules</h1>
@@ -83,7 +83,7 @@ export default function RulesPage() {
           <p className="text-xs text-[var(--muted2)] mt-1 font-mono">Add rules from your doctor, dietitian, or yourself.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3 animate-fade-up">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-fade-up">
           {rules.map((rule, i) => (
             <div key={rule.rule_id}
               className={`bg-[var(--surface)] border rounded-2xl p-5 transition-all ${rule.active ? 'border-[var(--border)]' : 'border-[var(--border)] opacity-50'}`}

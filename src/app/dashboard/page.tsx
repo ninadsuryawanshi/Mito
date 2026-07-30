@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { MealLog, TimelineView, DashboardStats, MOOD_MAP } from '@/types';
 import { computeStats } from '@/lib/services/mealService';
-import { MonoLabel, Badge, Spinner } from '@/components/ui';
+import { MonoLabel, Badge } from '@/components/ui';
 
 const VIEWS: TimelineView[] = ['day', 'week', 'month'];
 
@@ -48,7 +48,7 @@ export default function DashboardPage() {
   const viewMultiplier = view === 'day' ? 1 : view === 'week' ? 7 : 30;
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6">
+    <div className="max-w-6xl mx-auto px-4 py-6">
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6 animate-fade-up">
@@ -67,7 +67,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Timeline toggle */}
-      <div className="flex bg-[var(--surface)] border border-[var(--border)] rounded-xl p-1 mb-6 animate-fade-up delay-1">
+      <div className="flex bg-[var(--surface)] border border-[var(--border)] rounded-xl p-1 mb-6 animate-fade-up delay-1 max-w-xs">
         {VIEWS.map(v => (
           <button key={v} onClick={() => setView(v)}
             className={`flex-1 py-2 rounded-lg text-xs font-mono uppercase tracking-widest transition-all
@@ -78,93 +78,167 @@ export default function DashboardPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-20"><Spinner size="lg" /></div>
-      ) : (
-        <>
-          {/* Insight */}
-          {insight && (
-            <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-3 mb-4 animate-fade-up delay-2">
-              <MonoLabel className="mb-1 block">Today&apos;s observation</MonoLabel>
-              <p className="text-sm text-[var(--text)] italic">&quot;{insight}&quot;</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8 animate-pulse">
+          {/* Left skeleton */}
+          <div className="lg:col-span-1 flex flex-col gap-3">
+            {[80, 64, 64, 64, 64].map((h, i) => (
+              <div key={i} className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4">
+                <div className="skeleton h-3 w-20 mb-3" />
+                <div className={`skeleton mb-3`} style={{ height: h === 80 ? '2rem' : '1.75rem', width: '6rem' }} />
+                <div className="skeleton h-1.5 w-full rounded-full mb-2" />
+                <div className="skeleton h-3 w-28" />
+              </div>
+            ))}
+            <div className="grid grid-cols-3 gap-3">
+              {[0,1,2].map(i => (
+                <div key={i} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3">
+                  <div className="skeleton h-6 w-10 mx-auto mb-2" />
+                  <div className="skeleton h-2.5 w-8 mx-auto" />
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+          {/* Right skeleton */}
+          <div className="lg:col-span-2 flex flex-col gap-3 mt-4 lg:mt-0">
+            <div className="skeleton h-3 w-24 mb-1" />
+            {[0,1,2].map(i => (
+              <div key={i} className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4">
+                <div className="skeleton h-4 w-48 mb-2" />
+                <div className="skeleton h-3 w-32 mb-3" />
+                <div className="flex gap-2">
+                  <div className="skeleton h-5 w-20" />
+                  <div className="skeleton h-5 w-14" />
+                  <div className="skeleton h-5 w-14" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8">
 
-          {/* Rule traces */}
-          {ruleTraces.length > 0 && (
-            <div className="bg-[rgba(224,92,92,0.06)] border border-[rgba(224,92,92,0.2)] rounded-xl px-4 py-3 mb-4 animate-fade-up delay-2">
-              <MonoLabel className="mb-2 block" style={{ color: 'var(--red)' }}>Rules triggered</MonoLabel>
-              <div className="flex flex-col gap-2">
-                {ruleTraces.map((t: any) => (
-                  <div key={t.trace_id} className="flex items-center justify-between">
-                    <p className="text-xs text-[var(--text2)]">
-                      <span className="text-[var(--red)]">⊘ </span>
-                      {t.rule?.description}
-                      <span className="text-[var(--muted)]"> · &quot;{t.matched_keyword}&quot;</span>
-                    </p>
-                    <span className="text-[10px] font-mono text-[var(--muted)] shrink-0 ml-2">
-                      {format(new Date(t.triggered_at), 'h:mm a')}
-                    </span>
+          {/* LEFT COLUMN: Stats + Insight + Rules */}
+          <div className="lg:col-span-1 flex flex-col gap-4">
+
+            {/* Insight */}
+            {insight && (
+              <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-3 animate-fade-up delay-2">
+                <MonoLabel className="mb-1 block">Today&apos;s observation</MonoLabel>
+                <p className="text-sm text-[var(--text)] italic">&quot;{insight}&quot;</p>
+              </div>
+            )}
+
+            {/* Rule traces */}
+            {ruleTraces.length > 0 && (
+              <div className="bg-[rgba(224,92,92,0.06)] border border-[rgba(224,92,92,0.2)] rounded-xl px-4 py-3 animate-fade-up delay-2">
+                <MonoLabel className="mb-2 block" style={{ color: 'var(--red)' }}>Rules triggered</MonoLabel>
+                <div className="flex flex-col gap-2">
+                  {ruleTraces.map((t: any) => (
+                    <div key={t.trace_id} className="flex items-center justify-between">
+                      <p className="text-xs text-[var(--text2)]">
+                        <span className="text-[var(--red)]">⊘ </span>
+                        {t.rule?.description}
+                        <span className="text-[var(--muted)]"> · &quot;{t.matched_keyword}&quot;</span>
+                      </p>
+                      <span className="text-[10px] font-mono text-[var(--muted)] shrink-0 ml-2">
+                        {format(new Date(t.triggered_at), 'h:mm a')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Stats — real data or static skeleton placeholders */}
+            {stats && stats.total_meals > 0 ? (
+              <div className="animate-fade-up delay-2 flex flex-col gap-3">
+
+                {/* Calories */}
+                <GoalCard label="Calories" value={Math.round(stats.total_calories)} unit="kcal"
+                  goal={profile?.recommended_calories ? profile.recommended_calories * viewMultiplier : undefined} color="var(--accent)" mode="goal"
+                  showMacroBar stats={stats} />
+
+                {/* Protein */}
+                <GoalCard label="Protein" value={Math.round(stats.total_protein_g)} unit="g"
+                  goal={profile?.recommended_protein_g ? profile.recommended_protein_g * viewMultiplier : undefined} color="var(--blue)" mode="goal"
+                  sub={`Builds & repairs muscle · target ${viewMultiplier} day${viewMultiplier > 1 ? 's' : ''}`} />
+
+                {/* Fiber */}
+                <GoalCard label="Fiber" value={Math.round(stats.total_fiber_g)} unit="g"
+                  goal={WHO_LIMITS.fiber_g * viewMultiplier} color="var(--green)" mode="reach"
+                  sub={`WHO target: ${WHO_LIMITS.fiber_g}g/day`} />
+
+                {/* Sugar */}
+                <GoalCard label="Sugar" value={Math.round(stats.total_sugar_g)} unit="g"
+                  goal={WHO_LIMITS.sugar_g * viewMultiplier} color="var(--red)" mode="limit"
+                  sub={`WHO limit: ${WHO_LIMITS.sugar_g}g/day`} />
+
+                {/* Sodium */}
+                <GoalCard label="Sodium" value={Math.round(stats.total_sodium_mg)} unit="mg"
+                  goal={WHO_LIMITS.sodium_mg * viewMultiplier} color="var(--muted)" mode="limit"
+                  sub={`WHO limit: ${WHO_LIMITS.sodium_mg}mg/day`} />
+
+                {/* Quick stats row */}
+                <div className="grid grid-cols-3 gap-3">
+                  <StatPill label="Spent" value={`₹${Math.round(stats.total_spend)}`} color="var(--green)" />
+                  <StatPill label="Meals" value={String(stats.total_meals)} />
+                  <StatPill label="Eaten out" value={String(stats.meals_eaten_out)} color="var(--accent)" />
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 animate-fade-up delay-2">
+                {/* Static (non-animated) skeleton goal cards — no data yet */}
+                {['Calories', 'Protein', 'Fiber', 'Sugar', 'Sodium'].map((label) => (
+                  <div key={label} className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4">
+                    <p className="text-[10px] font-mono text-[var(--muted)] uppercase tracking-widest mb-3">{label}</p>
+                    <div className="skeleton-static h-8 w-24 mb-3" />
+                    <div className="skeleton-static h-1.5 w-full rounded-full mb-2" />
+                    <div className="skeleton-static h-3 w-32" />
                   </div>
                 ))}
+                {/* Quick stats static skeleton */}
+                <div className="grid grid-cols-3 gap-3">
+                  {['Spent', 'Meals', 'Eaten out'].map(l => (
+                    <div key={l} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3 text-center">
+                      <div className="skeleton-static h-6 w-10 mx-auto mb-2" />
+                      <p className="text-[10px] font-mono text-[var(--muted)] uppercase tracking-widest">{l}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Stats */}
-          {stats && stats.total_meals > 0 && (
-            <div className="animate-fade-up delay-2 flex flex-col gap-3 mb-4">
-
-              {/* Calories */}
-              <GoalCard label="Calories" value={Math.round(stats.total_calories)} unit="kcal"
-                goal={profile?.recommended_calories ? profile.recommended_calories * viewMultiplier : undefined} color="var(--accent)" mode="goal"
-                showMacroBar stats={stats} />
-
-              {/* Protein */}
-              <GoalCard label="Protein" value={Math.round(stats.total_protein_g)} unit="g"
-                goal={profile?.recommended_protein_g ? profile.recommended_protein_g * viewMultiplier : undefined} color="var(--blue)" mode="goal"
-                sub={`Builds & repairs muscle · target ${viewMultiplier} day${viewMultiplier > 1 ? 's' : ''}`} />
-
-              {/* Fiber — reach target */}
-              <GoalCard label="Fiber" value={Math.round(stats.total_fiber_g)} unit="g"
-                goal={WHO_LIMITS.fiber_g * viewMultiplier} color="var(--green)" mode="reach"
-                sub={`WHO target: ${WHO_LIMITS.fiber_g}g/day`} />
-
-              {/* Sugar — stay under limit */}
-              <GoalCard label="Sugar" value={Math.round(stats.total_sugar_g)} unit="g"
-                goal={WHO_LIMITS.sugar_g * viewMultiplier} color="var(--red)" mode="limit"
-                sub={`WHO limit: ${WHO_LIMITS.sugar_g}g/day`} />
-
-              {/* Sodium — stay under limit */}
-              <GoalCard label="Sodium" value={Math.round(stats.total_sodium_mg)} unit="mg"
-                goal={WHO_LIMITS.sodium_mg * viewMultiplier} color="var(--muted)" mode="limit"
-                sub={`WHO limit: ${WHO_LIMITS.sodium_mg}mg/day`} />
-
-              {/* Quick stats row */}
-              <div className="grid grid-cols-3 gap-3">
-                <StatPill label="Spent" value={`₹${Math.round(stats.total_spend)}`} color="var(--green)" />
-                <StatPill label="Meals" value={String(stats.total_meals)} />
-                <StatPill label="Eaten out" value={String(stats.meals_eaten_out)} color="var(--accent)" />
-              </div>
-            </div>
-          )}
-
-          {/* Meal list */}
-          <div className="flex flex-col gap-3 animate-fade-up delay-3">
+          {/* RIGHT COLUMN: Meal list */}
+          <div className="lg:col-span-2 flex flex-col gap-3 animate-fade-up delay-3 mt-4 lg:mt-0">
             <MonoLabel className="mb-1">
               {view === 'day' ? "Today's meals" : view === 'week' ? 'This week' : 'This month'}
             </MonoLabel>
 
             {meals.length === 0 ? (
-              <div className="text-center py-16 border border-dashed border-[var(--border)] rounded-2xl">
-                <div className="text-4xl mb-3">🍽</div>
-                <p className="text-sm text-[var(--muted)]">Nothing logged yet.</p>
-                <p className="text-xs text-[var(--muted2)] mt-1 font-mono">Tap + to log your first meal</p>
+              <div className="relative flex flex-col items-center justify-center py-20 border border-dashed border-[var(--border)] rounded-2xl gap-5 text-center overflow-hidden min-h-[320px]">
+                {/* Floating bowl illustration */}
+                <div className="animate-float">
+                  <div className="w-20 h-20 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-4xl shadow-[0_0_40px_rgba(244,162,77,0.08)]">
+                    🍽
+                  </div>
+                </div>
+                <div>
+                  <p className="text-base font-bold text-[var(--text2)]" style={{ fontFamily: 'Syne, serif' }}>
+                    Nothing logged {view === 'day' ? 'today' : view === 'week' ? 'this week' : 'this month'}
+                  </p>
+                  <p className="text-xs text-[var(--muted)] mt-2 font-mono max-w-xs">
+                    Your nutrition mirror is empty — tap <span className="text-[var(--accent)] font-bold">+</span> to log your first meal
+                  </p>
+                </div>
+                {/* Decorative blurred glow */}
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-24 bg-[var(--accent)] opacity-[0.04] blur-3xl rounded-full pointer-events-none" />
               </div>
             ) : (
               meals.map((meal, i) => <MealCard key={meal.log_id} meal={meal} index={i} onDelete={fetchData} />)
             )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
