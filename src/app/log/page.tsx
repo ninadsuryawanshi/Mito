@@ -46,6 +46,11 @@ export default function LogPage() {
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [photoMime, setPhotoMime] = useState('image/jpeg');
 
+  // Quick re-log state
+  const [recentMeals, setRecentMeals] = useState<any[]>([]);
+  const [reusedFromLogId, setReusedFromLogId] = useState<string | null>(null);
+  const [inputMethod, setInputMethod] = useState<'text' | 'photo' | 'quick_reuse'>('text');
+
   // Date + Time — default to today/now
   const [logDate, setLogDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [logTime, setLogTime] = useState(format(new Date(), 'HH:mm'));
@@ -55,6 +60,13 @@ export default function LogPage() {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetch('/api/meals?recent=true')
+      .then(res => res.json())
+      .then(data => { if (data.meals) setRecentMeals(data.meals); })
+      .catch(console.error);
+  }, []);
 
   function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -112,6 +124,7 @@ export default function LogPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setAnalysis(data.analysis);
+      setInputMethod(photoBase64 ? 'photo' : 'text');
       setStep('review');
     } catch (err: any) {
       setError(err.message || 'Analysis failed. Try again.');
@@ -129,7 +142,8 @@ export default function LogPage() {
         body: JSON.stringify({
           analysis,
           description: description.trim() || undefined,
-          input_method: photoBase64 ? 'photo' : 'text',
+          input_method: inputMethod,
+          reused_from_log_id: reusedFromLogId || undefined,
           meal_type: mealType || undefined,
           price: price ? parseFloat(price) : undefined,
           currency: '₹',
@@ -167,6 +181,41 @@ export default function LogPage() {
       total_sugar_g:    Math.max(0, analysis.total_sugar_g    - item.sugar_g),
       total_sodium_mg:  Math.max(0, analysis.total_sodium_mg  - item.sodium_mg),
     });
+  }
+
+  function handleQuickRelog(meal: any) {
+    const items = meal.items?.map((i: any) => ({
+      name: i.food_entity?.name || 'Food item',
+      quantity: i.quantity || 1,
+      unit: i.unit || 'serving',
+      calories: i.calories || 0,
+      protein_g: i.protein_g || 0,
+      carbs_g: i.carbs_g || 0,
+      fat_g: i.fat_g || 0,
+      fiber_g: i.fiber_g || 0,
+      sugar_g: i.sugar_g || 0,
+      sodium_mg: i.sodium_mg || 0,
+    })) || [];
+
+    const relogAnalysis: AIMealAnalysis = {
+      items,
+      eating_context: (meal.eating_context as any) || 'home',
+      total_calories: meal.total_calories || 0,
+      total_protein_g: meal.total_protein_g || 0,
+      total_carbs_g: meal.total_carbs_g || 0,
+      total_fat_g: meal.total_fat_g || 0,
+      total_fiber_g: meal.total_fiber_g || 0,
+      total_sugar_g: meal.total_sugar_g || 0,
+      total_sodium_mg: meal.total_sodium_mg || 0,
+      ai_note: meal.ai_note || 'Re-logged meal',
+    };
+
+    setAnalysis(relogAnalysis);
+    if (meal.meal_type) setMealType(meal.meal_type);
+    setReusedFromLogId(meal.log_id);
+    setInputMethod('quick_reuse');
+    setStep('review');
+    toast('Meal copied — review & save', 'info');
   }
 
 
@@ -235,6 +284,32 @@ export default function LogPage() {
             onChange={e => setDescription(e.target.value)}
             rows={4}
           />
+
+          {/* Quick re-log recent meals */}
+          {recentMeals.length > 0 && (
+            <div>
+              <MonoLabel className="mb-2 block">Re-log Recent Meal</MonoLabel>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                {recentMeals.slice(0, 6).map((meal: any) => {
+                  const names = meal.items?.map((i: any) => i.food_entity?.name).filter(Boolean).join(', ') || 'Meal';
+                  return (
+                    <button
+                      key={meal.log_id}
+                      onClick={() => handleQuickRelog(meal)}
+                      className="shrink-0 bg-[var(--surface2)] border border-[var(--border)] hover:border-[var(--accent)] rounded-xl px-3.5 py-2 text-left transition-all group"
+                    >
+                      <p className="text-xs font-medium text-[var(--text)] group-hover:text-[var(--accent)] max-w-[160px] truncate" style={{ fontFamily: 'Syne, serif' }}>
+                        {names}
+                      </p>
+                      <p className="text-[10px] font-mono text-[var(--muted)] mt-0.5">
+                        {Math.round(meal.total_calories || 0)} kcal
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Meal type */}
           <div>
