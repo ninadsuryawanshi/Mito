@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/db/client';
-import { Button, Input } from '@/components/ui';
+import { Button, Input, LogoMark } from '@/components/ui';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -27,14 +27,9 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
       {/* Logo */}
-      <div className="animate-fade-up mb-12 text-center">
-        <div className="inline-flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center">
-            <span className="text-[#0a0908] font-bold text-sm" style={{ fontFamily: 'Syne, serif' }}>M</span>
-          </div>
-          <span className="text-2xl font-bold" style={{ fontFamily: 'Syne, serif' }}>mito</span>
-        </div>
-        <p className="text-[var(--muted)] text-sm font-mono tracking-wide">POWERHOUSE OF YOU</p>
+      <div className="animate-fade-up mb-12 text-center flex flex-col items-center gap-2">
+        <LogoMark showText size={36} />
+        <p className="text-[var(--muted)] text-[11px] font-mono tracking-widest uppercase">POWERHOUSE OF YOU</p>
       </div>
 
       <div className="w-full max-w-sm animate-fade-up delay-1">
