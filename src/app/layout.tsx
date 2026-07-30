@@ -38,11 +38,13 @@ export const viewport: Viewport = {
 };
 
 import { ToastProvider } from '@/components/ui/ToastContext';
+import { AuthRecoveryRedirect } from '@/components/auth/AuthRecoveryRedirect';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${syne.variable} ${dmSans.variable} ${dmMono.variable}`}>
       <body>
+        <AuthRecoveryRedirect />
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>

@@ -17,15 +17,19 @@ export default function ResetPasswordPage() {
   // We exchange it for a session so updateUser works.
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.onAuthStateChange(async (event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         setReady(true);
       }
     });
-    // Also check if already in a recovery session
+
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true);
+      if (data.session || window.location.hash.includes('access_token')) {
+        setReady(true);
+      }
     });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   async function handleReset(e: React.FormEvent) {
