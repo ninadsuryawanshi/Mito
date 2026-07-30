@@ -193,5 +193,7 @@ export function NutrientBox({
 
 export { useToast, ToastProvider } from './ToastContext';
 export { CalorieTrendChart } from './MiniChart';
+export { PWAPrompt } from './PWAPrompt';
+
 
 
