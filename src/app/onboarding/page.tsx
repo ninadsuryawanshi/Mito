@@ -13,7 +13,7 @@ const ACTIVITY_OPTIONS = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const [name, setName] = useState('');
@@ -57,32 +57,50 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
-      {/* Logo */}
-      <div className="mb-10 text-center animate-fade-up">
-        <div className="inline-flex items-center gap-2 mb-2">
-          <div className="w-7 h-7 rounded-lg bg-[var(--accent)] flex items-center justify-center">
-            <span className="text-[#0a0908] font-bold text-xs" style={{ fontFamily: 'Syne, serif' }}>M</span>
-          </div>
-          <span className="text-xl font-bold" style={{ fontFamily: 'Syne, serif' }}>mito</span>
-        </div>
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden">
 
-      <div className="w-full max-w-sm">
+      {/* Decorative ambient background glows */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[var(--accent)] opacity-10 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="w-full max-w-sm relative z-10">
+
         {/* Step indicators */}
         <div className="flex gap-2 mb-8 animate-fade-up">
-          {[1, 2, 3].map(s => (
-            <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-300 ${s <= step ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`} />
+          {[0, 1, 2, 3].map(s => (
+            <div
+              key={s}
+              className={`h-1 flex-1 rounded-full transition-all duration-500 ${
+                s <= step ? 'bg-[var(--accent)] shadow-[0_0_8px_var(--accent)]' : 'bg-[var(--border)]'
+              }`}
+            />
           ))}
         </div>
 
+        {/* Step 0 — Brand Moment */}
+        {step === 0 && (
+          <div className="animate-scale-in bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-8 text-center flex flex-col items-center shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
+            <div className="w-16 h-16 rounded-2xl bg-[var(--accent)] flex items-center justify-center mb-6 shadow-[0_0_30px_var(--accent-glow)] animate-pulse">
+              <span className="text-[#0a0908] font-bold text-3xl" style={{ fontFamily: 'Syne, serif' }}>M</span>
+            </div>
+            <h1 className="text-2xl font-bold mb-3 tracking-tight" style={{ fontFamily: 'Syne, serif' }}>
+              Your food, reflected.
+            </h1>
+            <p className="text-sm text-[var(--muted)] leading-relaxed mb-8 font-mono">
+              Not a diet app. Not an instructor. Mito is a pure objective mirror for what powers your body.
+            </p>
+            <Button size="lg" className="w-full font-mono text-sm py-4" onClick={() => setStep(1)}>
+              Set up your mirror →
+            </Button>
+          </div>
+        )}
+
         {/* Step 1 — Name */}
         {step === 1 && (
-          <div className="animate-fade-up bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8">
+          <div className="animate-fade-up bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-8 shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
             <h1 className="text-xl font-bold mb-1" style={{ fontFamily: 'Syne, serif' }}>What should we call you?</h1>
-            <p className="text-sm text-[var(--muted)] mb-8">Your mirror is personal.</p>
+            <p className="text-sm text-[var(--muted)] mb-8 font-mono">Your mirror is personal.</p>
             <Input label="Your name" placeholder="Ninad" value={name} onChange={e => setName(e.target.value)} autoFocus />
-            <Button size="lg" className="mt-6 font-mono" onClick={() => setStep(2)} disabled={!name.trim()}>
+            <Button size="lg" className="mt-6 font-mono w-full" onClick={() => setStep(2)} disabled={!name.trim()}>
               Continue →
             </Button>
           </div>
@@ -90,9 +108,9 @@ export default function OnboardingPage() {
 
         {/* Step 2 — Physical profile */}
         {step === 2 && (
-          <div className="animate-fade-up bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8">
+          <div className="animate-fade-up bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-8 shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
             <h1 className="text-xl font-bold mb-1" style={{ fontFamily: 'Syne, serif' }}>Your body profile</h1>
-            <p className="text-sm text-[var(--muted)] mb-8">Used to compute your recommended intake. All editable later.</p>
+            <p className="text-sm text-[var(--muted)] mb-8 font-mono">Used to compute your recommended intake. All editable later.</p>
 
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-3">
@@ -106,7 +124,7 @@ export default function OnboardingPage() {
                 <div className="grid grid-cols-3 gap-2">
                   {(['male','female','other'] as const).map(s => (
                     <button key={s} onClick={() => setSex(s)}
-                      className={`py-2 rounded-xl text-sm border transition-all capitalize ${sex === s ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-glow)]' : 'border-[var(--border)] text-[var(--muted)]'}`}>
+                      className={`py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider border transition-all capitalize ${sex === s ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-glow)]' : 'border-[var(--border)] text-[var(--muted)]'}`}>
                       {s}
                     </button>
                   ))}
@@ -119,8 +137,8 @@ export default function OnboardingPage() {
                   {ACTIVITY_OPTIONS.map(opt => (
                     <button key={opt.value} onClick={() => setActivity(opt.value)}
                       className={`flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all ${activity === opt.value ? 'border-[var(--accent)] bg-[var(--accent-glow)]' : 'border-[var(--border)]'}`}>
-                      <span className={`text-sm font-medium ${activity === opt.value ? 'text-[var(--accent)]' : 'text-[var(--text)]'}`}>{opt.label}</span>
-                      <span className="text-xs text-[var(--muted)]">{opt.sub}</span>
+                      <span className={`text-xs font-medium ${activity === opt.value ? 'text-[var(--accent)]' : 'text-[var(--text)]'}`}>{opt.label}</span>
+                      <span className="text-[11px] font-mono text-[var(--muted)]">{opt.sub}</span>
                     </button>
                   ))}
                 </div>
@@ -128,8 +146,8 @@ export default function OnboardingPage() {
             </div>
 
             <div className="flex gap-3 mt-6">
-              <Button variant="ghost" size="md" onClick={() => router.push('/dashboard')} className="text-xs">
-                Skip for now
+              <Button variant="ghost" size="md" onClick={() => router.push('/dashboard')} className="text-xs font-mono">
+                Skip
               </Button>
               <Button size="lg" className="flex-1 font-mono" onClick={computeRecs}
                 disabled={!weight || !height || !age || !sex || !activity}>
@@ -141,9 +159,9 @@ export default function OnboardingPage() {
 
         {/* Step 3 — Review WHO recommendations */}
         {step === 3 && (
-          <div className="animate-fade-up bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8">
+          <div className="animate-fade-up bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-8 shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
             <h1 className="text-xl font-bold mb-1" style={{ fontFamily: 'Syne, serif' }}>Your daily targets</h1>
-            <p className="text-sm text-[var(--muted)] mb-6">Computed from WHO standards. Edit if your dietitian has different numbers.</p>
+            <p className="text-sm text-[var(--muted)] mb-6 font-mono">Computed from WHO standards. Edit if your dietitian has different numbers.</p>
 
             <div className="flex flex-col gap-4 mb-6">
               <div>
@@ -162,7 +180,7 @@ export default function OnboardingPage() {
 
             <p className="text-xs text-[var(--muted)] mb-6 font-mono">These are shown as context on your dashboard — not as targets to hit. You can change them anytime in Settings.</p>
 
-            <Button size="lg" className="font-mono" loading={loading} onClick={handleSubmit}>
+            <Button size="lg" className="font-mono w-full" loading={loading} onClick={handleSubmit}>
               Enter Mito →
             </Button>
           </div>
