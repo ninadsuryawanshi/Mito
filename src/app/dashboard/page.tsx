@@ -21,24 +21,28 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [ruleTraces, setRuleTraces] = useState<any[]>([]);
+  const [streak, setStreak] = useState<number>(0);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [mealsRes, profileRes, insightRes, tracesRes] = await Promise.all([
+    const [mealsRes, profileRes, insightRes, tracesRes, streakRes] = await Promise.all([
       fetch(`/api/meals?view=${view}`),
       fetch('/api/profile'),
       fetch('/api/insights/daily'),
       fetch(`/api/rules/traces?view=${view}`),
+      fetch('/api/meals/streak'),
     ]);
     const { meals: m } = await mealsRes.json();
     const { profile: p } = await profileRes.json();
     const { insight: i } = await insightRes.json().catch(() => ({ insight: '' }));
     const { traces: t } = await tracesRes.json().catch(() => ({ traces: [] }));
+    const { streak_days: s } = await streakRes.json().catch(() => ({ streak_days: 0 }));
     setMeals(m || []);
     setStats(computeStats(m || []));
     setProfile(p);
     setInsight(i || '');
     setRuleTraces(t || []);
+    setStreak(s || 0);
     setLoading(false);
   }, [view]);
 
@@ -89,11 +93,11 @@ export default function DashboardPage() {
                 <div className="skeleton h-3 w-28" />
               </div>
             ))}
-            <div className="grid grid-cols-3 gap-3">
-              {[0,1,2].map(i => (
-                <div key={i} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3">
-                  <div className="skeleton h-6 w-10 mx-auto mb-2" />
-                  <div className="skeleton h-2.5 w-8 mx-auto" />
+            <div className="grid grid-cols-4 gap-2">
+              {[0,1,2,3].map(i => (
+                <div key={i} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-2.5">
+                  <div className="skeleton h-5 w-8 mx-auto mb-2" />
+                  <div className="skeleton h-2 w-6 mx-auto" />
                 </div>
               ))}
             </div>
@@ -179,10 +183,11 @@ export default function DashboardPage() {
                   sub={`WHO limit: ${WHO_LIMITS.sodium_mg}mg/day`} />
 
                 {/* Quick stats row */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-4 gap-2">
                   <StatPill label="Spent" value={`₹${Math.round(stats.total_spend)}`} color="var(--green)" />
                   <StatPill label="Meals" value={String(stats.total_meals)} />
-                  <StatPill label="Eaten out" value={String(stats.meals_eaten_out)} color="var(--accent)" />
+                  <StatPill label="Out" value={String(stats.meals_eaten_out)} color="var(--accent)" />
+                  <StatPill label="Streak" value={`${streak}d`} color="var(--accent)" />
                 </div>
               </div>
             ) : (
@@ -197,11 +202,11 @@ export default function DashboardPage() {
                   </div>
                 ))}
                 {/* Quick stats static skeleton */}
-                <div className="grid grid-cols-3 gap-3">
-                  {['Spent', 'Meals', 'Eaten out'].map(l => (
-                    <div key={l} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3 text-center">
-                      <div className="skeleton-static h-6 w-10 mx-auto mb-2" />
-                      <p className="text-[10px] font-mono text-[var(--muted)] uppercase tracking-widest">{l}</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {['Spent', 'Meals', 'Out', 'Streak'].map(l => (
+                    <div key={l} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-2.5 text-center">
+                      <div className="skeleton-static h-5 w-8 mx-auto mb-2" />
+                      <p className="text-[9px] font-mono text-[var(--muted)] uppercase tracking-widest">{l}</p>
                     </div>
                   ))}
                 </div>
