@@ -1,9 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { PersonalRule } from '@/types';
-import { Button, Input, MonoLabel, Badge, Spinner } from '@/components/ui';
+import { Button, Input, MonoLabel, Badge, Spinner, useToast } from '@/components/ui';
 
 export default function RulesPage() {
+  const { toast } = useToast();
   const [rules, setRules] = useState<PersonalRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -30,15 +31,18 @@ export default function RulesPage() {
     setNewRule('');
     setAdding(false);
     setSaving(false);
+    toast('Rule added ✓', 'success');
     fetchRules();
   }
 
   async function toggleRule(rule: PersonalRule) {
+    const nextState = !rule.active;
     await fetch('/api/rules', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rule_id: rule.rule_id, active: !rule.active }),
+      body: JSON.stringify({ rule_id: rule.rule_id, active: nextState }),
     });
+    toast(nextState ? 'Rule activated' : 'Rule deactivated', 'info');
     fetchRules();
   }
 

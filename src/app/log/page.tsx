@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { AIMealAnalysis } from '@/types';
 import { Button, Textarea, NutrientBox, MonoLabel, Spinner } from '@/components/ui';
+import { useToast } from '@/components/ui/ToastContext';
 
 type Step = 'input' | 'analyzing' | 'review' | 'saving' | 'done';
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
@@ -33,6 +34,7 @@ function makeDatePresets() {
 
 export default function LogPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [step, setStep] = useState<Step>('input');
   const [description, setDescription] = useState('');
   const [mealType, setMealType] = useState('');
@@ -136,8 +138,8 @@ export default function LogPage() {
         }),
       });
       if (!res.ok) throw new Error('Save failed');
-      setStep('done');
-      setTimeout(() => router.push('/dashboard'), 1000);
+      toast('Meal logged ✓', 'success');
+      router.push('/dashboard');
     } catch (err: any) {
       setError(err.message);
       setStep('review');
@@ -167,13 +169,7 @@ export default function LogPage() {
     });
   }
 
-  // ── DONE ──
-  if (step === 'done') return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-      <div className="text-5xl animate-scale-in">✓</div>
-      <p className="font-mono text-[var(--green)] text-sm uppercase tracking-widest animate-fade-up">Logged</p>
-    </div>
-  );
+
 
   if (step === 'saving') return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">

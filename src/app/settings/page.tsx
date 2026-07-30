@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/db/client';
 import { Button, Input, MonoLabel } from '@/components/ui';
+import { useToast } from '@/components/ui/ToastContext';
 import { computeWHORecommendations } from '@/lib/ai/gemini';
 
 const ACTIVITY_OPTIONS = [
@@ -15,8 +16,8 @@ const ACTIVITY_OPTIONS = [
 export default function SettingsPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'share' | 'export'>('profile');
   const [viewers, setViewers] = useState<any[]>([]);
   const [newViewer, setNewViewer] = useState({ name: '', email: '', permission_level: 'summary', can_see_price: false });
@@ -51,8 +52,7 @@ export default function SettingsPage() {
       body: JSON.stringify(profile),
     });
     setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    toast('Profile saved', 'success');
   }
 
   async function handleSignOut() {

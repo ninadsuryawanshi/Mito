@@ -37,11 +37,16 @@ export const viewport: Viewport = {
   themeColor: '#0a0908',
 };
 
+import { ToastProvider } from '@/components/ui/ToastContext';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${syne.variable} ${dmSans.variable} ${dmMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }
+
 
