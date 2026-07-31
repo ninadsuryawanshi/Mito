@@ -1,5 +1,5 @@
 'use client';
-import { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes, TextareaHTMLAttributes, forwardRef } from 'react';
 
 // ─── Button ───────────────────────────────────────────────────────────────────
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -66,34 +66,37 @@ export function Input({ label, error, hint, className = '', ...props }: InputPro
     </div>
   );
 }
-
 // ─── Textarea ─────────────────────────────────────────────────────────────────
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
 }
 
-export function Textarea({ label, error, className = '', ...props }: TextareaProps) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      {label && (
-        <label className="text-[10px] font-mono uppercase tracking-widest text-[var(--muted)]">
-          {label}
-        </label>
-      )}
-      <textarea
-        className={`
-          w-full bg-[var(--surface2)] border rounded-xl px-4 py-3 text-sm text-[var(--text)]
-          placeholder:text-[var(--muted)] outline-none transition-all duration-200 resize-none
-          ${error ? 'border-[var(--red)]' : 'border-[var(--border)] focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_var(--accent-glow)]'}
-          ${className}
-        `}
-        {...props}
-      />
-      {error && <p className="text-[11px] text-[var(--red)]">{error}</p>}
-    </div>
-  );
-}
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ label, error, className = '', ...props }, ref) => {
+    return (
+      <div className="flex flex-col gap-1.5">
+        {label && (
+          <label className="text-[10px] font-mono uppercase tracking-widest text-[var(--muted)]">
+            {label}
+          </label>
+        )}
+        <textarea
+          ref={ref}
+          className={`
+            w-full bg-[var(--surface2)] border rounded-xl px-4 py-3 text-sm text-[var(--text)]
+            placeholder:text-[var(--muted)] outline-none transition-all duration-200 resize-none
+            ${error ? 'border-[var(--red)]' : 'border-[var(--border)] focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_var(--accent-glow)]'}
+            ${className}
+          `}
+          {...props}
+        />
+        {error && <p className="text-[11px] text-[var(--red)]">{error}</p>}
+      </div>
+    );
+  }
+);
+Textarea.displayName = 'Textarea';
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
 export function Card({ children, className = '', glow = false }: { children: ReactNode; className?: string; glow?: boolean }) {

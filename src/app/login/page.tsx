@@ -35,7 +35,7 @@ export default function LoginPage() {
           <div className="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center">
             <span className="text-[#0a0908] font-bold text-sm" style={{ fontFamily: 'Syne, serif' }}>M</span>
           </div>
-          <span className="text-2xl font-bold" style={{ fontFamily: 'Syne, serif' }}>mito</span>
+          <span className="text-2xl font-bold" style={{ fontFamily: 'Syne, serif' }}>Mito</span>
         </div>
         <p className="text-[var(--muted)] text-sm font-mono tracking-wide">POWERHOUSE OF YOU</p>
       </div>

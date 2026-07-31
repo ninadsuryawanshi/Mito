@@ -29,7 +29,7 @@ export function LogoMark({ size = 34, className = '', showText = false }: LogoMa
           className="font-bold text-xl tracking-tight text-[var(--text)] select-none"
           style={{ fontFamily: 'Syne, serif' }}
         >
-          mito
+          Mito
         </span>
       )}
     </div>

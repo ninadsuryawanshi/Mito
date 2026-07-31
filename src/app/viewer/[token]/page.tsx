@@ -120,7 +120,7 @@ export default function ViewerPage({ params }: { params: { token: string } }) {
                     <span className="text-[#0a0908] font-bold text-sm" style={{ fontFamily: 'Syne, serif' }}>M</span>
                 </div>
                 <div>
-                    <p className="font-bold text-lg" style={{ fontFamily: 'Syne, serif' }}>mito</p>
+                    <p className="font-bold text-lg" style={{ fontFamily: 'Syne, serif' }}>Mito</p>
                     <p className="text-xs font-mono text-[var(--muted)]">
                         {data.owner_name}&apos;s food log · read-only
                     </p>

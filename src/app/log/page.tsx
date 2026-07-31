@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { AIMealAnalysis } from '@/types';
 import { Button, Textarea, NutrientBox, MonoLabel, Spinner } from '@/components/ui';
@@ -34,6 +34,7 @@ function makeDatePresets() {
 
 export default function LogPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [step, setStep] = useState<Step>('input');
   const [description, setDescription] = useState('');
@@ -60,6 +61,7 @@ export default function LogPage() {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const fileRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     fetch('/api/meals?recent=true')
@@ -67,6 +69,17 @@ export default function LogPage() {
       .then(data => { if (data.meals) setRecentMeals(data.meals); })
       .catch(console.error);
   }, []);
+
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    const autoFocus = searchParams.get('autoFocus');
+
+    if (mode === 'photo') {
+      setTimeout(() => fileRef.current?.click(), 300);
+    } else if (mode === 'voice' || autoFocus === 'true') {
+      setTimeout(() => textareaRef.current?.focus(), 250);
+    }
+  }, [searchParams]);
 
   function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -278,6 +291,7 @@ export default function LogPage() {
 
           {/* Description */}
           <Textarea
+            ref={textareaRef}
             label="What did you eat? (More detail = Better Result)"
             placeholder="Casually, What? How Much? Where?...Thats It!"
             value={description}

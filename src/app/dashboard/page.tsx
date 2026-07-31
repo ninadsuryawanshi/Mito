@@ -14,6 +14,19 @@ const WHO_LIMITS = {
   fiber_g: 25,
 };
 
+const WITTY_PROMPTS = [
+  "what fueled you today?",
+  "feed the mirror...",
+  "what's on your plate?",
+  "dish the details...",
+  "spill the beans (literally)...",
+  "what did you eat today?",
+  "track your latest fuel...",
+  "what's cooking?",
+  "log your last bite...",
+  "give the mirror something to reflect...",
+];
+
 export default function DashboardPage() {
   const [view, setView] = useState<TimelineView>('day');
   const [meals, setMeals] = useState<MealLog[]>([]);
@@ -23,6 +36,11 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<any>(null);
   const [ruleTraces, setRuleTraces] = useState<any[]>([]);
   const [streak, setStreak] = useState<number>(0);
+  const [promptIndex, setPromptIndex] = useState(0);
+
+  useEffect(() => {
+    setPromptIndex(Math.floor(Math.random() * WITTY_PROMPTS.length));
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -77,40 +95,45 @@ export default function DashboardPage() {
           {profile?.name && (
             <p className="text-sm text-[var(--text2)] font-mono hidden sm:block">Hey, {profile.name.split(' ')[0]}</p>
           )}
-          {/* Settings link — mobile only, desktop uses sidebar */}
-          <a href="/settings"
+          {/* Settings / Profile link — mobile only, desktop uses sidebar */}
+          <Link href="/settings"
+            aria-label="Settings"
             className="md:hidden w-9 h-9 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-all active:scale-95">
-            <span className="text-lg">◈</span>
-          </a>
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </Link>
         </div>
       </div>
 
       {/* Quick-Log Prompt Box with glowing moving gradient border */}
-      <Link href="/log" className="block mb-5 animate-fade-up group">
-        <div className="moving-gradient-border-wrapper">
-          <div className="bg-[#12100e] rounded-[1.2rem] p-4 flex flex-col gap-3 transition-all group-hover:bg-[#161411] active:scale-[0.99]">
-            {/* Main prompt input preview */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-[var(--text)] tracking-wide group-hover:text-[var(--accent)] transition-colors">
-                What did you eat today?
-              </span>
-              <div className="w-8 h-8 rounded-full bg-[var(--accent)] text-[#0a0908] flex items-center justify-center font-bold text-sm shadow-[0_0_15px_var(--accent-glow)] group-hover:scale-105 transition-transform">
-                ➔
-              </div>
+      <div className="moving-gradient-border-wrapper mb-5 animate-fade-up">
+        <div className="bg-[#12100e] rounded-[1.2rem] p-4 flex flex-col gap-3">
+          {/* Main prompt input preview -> opens /log with autoFocus */}
+          <Link href="/log?autoFocus=true" className="flex items-center justify-between group">
+            <span className="text-sm font-medium text-[var(--text)] tracking-wide group-hover:text-[var(--accent)] transition-colors">
+              {profile?.name
+                ? `Hey ${profile.name.split(' ')[0]}, ${WITTY_PROMPTS[promptIndex]}`
+                : `Hey, ${WITTY_PROMPTS[promptIndex]}`}
+            </span>
+            <div className="w-8 h-8 rounded-full bg-[var(--accent)] text-[#0a0908] flex items-center justify-center font-bold text-sm shadow-[0_0_15px_var(--accent-glow)] group-hover:scale-105 transition-transform">
+              ➔
             </div>
+          </Link>
 
-            {/* Quick action chips matching reference design */}
-            <div className="flex items-center gap-2 pt-0.5">
-              <span className="text-[10px] font-mono text-[var(--text2)] bg-[var(--surface2)] border border-[var(--border)] px-2.5 py-1 rounded-lg flex items-center gap-1 group-hover:border-[rgba(244,162,77,0.3)] transition-colors">
-                📷 Photo log
-              </span>
-              <span className="text-[10px] font-mono text-[var(--text2)] bg-[var(--surface2)] border border-[var(--border)] px-2.5 py-1 rounded-lg flex items-center gap-1 group-hover:border-[rgba(244,162,77,0.3)] transition-colors">
-                🎙️ Voice log
-              </span>
-            </div>
+          {/* Quick action chips matching reference design with direct tab deep-linking */}
+          <div className="flex items-center gap-2 pt-0.5">
+            <Link href="/log?mode=photo"
+              className="text-[10px] font-mono text-[var(--text2)] bg-[var(--surface2)] border border-[var(--border)] px-2.5 py-1 rounded-lg flex items-center gap-1 hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors">
+              📷 Photo log
+            </Link>
+            <Link href="/log?mode=voice"
+              className="text-[10px] font-mono text-[var(--text2)] bg-[var(--surface2)] border border-[var(--border)] px-2.5 py-1 rounded-lg flex items-center gap-1 hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors">
+              🎙️ Voice log
+            </Link>
           </div>
         </div>
-      </Link>
+      </div>
 
       {/* Timeline toggle */}
       <div className="flex w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl p-1 mb-6 animate-fade-up delay-1">
