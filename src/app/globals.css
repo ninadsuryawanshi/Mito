@@ -164,8 +164,7 @@ body::after {
 
 /* Active focus state — intense golden glow when focused/selected */
 .moving-gradient-border-wrapper:focus-within {
-  padding: 2px;
-  box-shadow: 0 0 35px rgba(244, 162, 77, 0.45);
+  box-shadow: 0 0 35px rgba(244, 162, 77, 0.45), 0 0 15px rgba(244, 162, 77, 0.25);
 }
 
 .moving-gradient-border-wrapper:focus-within::after {
@@ -173,3 +172,39 @@ body::after {
   filter: blur(18px);
 }
 
+/* Active voice recording state — intense crimson-gold pulse */
+.moving-gradient-border-wrapper.recording {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 77, 77, 0.95),
+    rgba(244, 162, 77, 0.95),
+    rgba(255, 107, 107, 0.8),
+    rgba(255, 77, 77, 0.95)
+  );
+  background-size: 300% 300%;
+  animation: borderGlowMove 1.5s ease infinite;
+  box-shadow: 0 0 40px rgba(255, 77, 77, 0.5), 0 0 20px rgba(244, 162, 77, 0.3);
+}
+
+.moving-gradient-border-wrapper.recording::after {
+  opacity: 0.95;
+  filter: blur(20px);
+}
+
+/* Audio Waveform Animations */
+@keyframes waveformPulse {
+  0%, 100% { height: 4px; }
+  50% { height: 14px; }
+}
+
+.waveform-bar {
+  width: 2.5px;
+  background-color: var(--red);
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.waveform-bar-1 { animation: waveformPulse 0.7s ease-in-out infinite 0.1s; }
+.waveform-bar-2 { animation: waveformPulse 0.7s ease-in-out infinite 0.3s; }
+.waveform-bar-3 { animation: waveformPulse 0.7s ease-in-out infinite 0.5s; }
+.waveform-bar-4 { animation: waveformPulse 0.7s ease-in-out infinite 0.2s; }

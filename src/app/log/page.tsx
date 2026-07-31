@@ -352,30 +352,45 @@ function LogContent() {
 
           {/* Description */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <MonoLabel>What did you eat? (More detail = Better Result)</MonoLabel>
-              <button
-                type="button"
-                onClick={toggleListening}
-                className={`flex items-center gap-1.5 text-xs font-mono px-2.5 py-1 rounded-lg border transition-all ${
-                  isListening
-                    ? 'bg-[rgba(224,92,92,0.2)] border-[var(--red)] text-[var(--red)] animate-pulse shadow-[0_0_12px_rgba(224,92,92,0.4)]'
-                    : 'bg-[var(--surface2)] border-[var(--border)] text-[var(--text2)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
-                }`}
-              >
-                <span>🎙️</span>
-                <span>{isListening ? 'Listening...' : 'Voice Log'}</span>
-              </button>
-            </div>
-            <div className="moving-gradient-border-wrapper">
+            <MonoLabel className="mb-2 block">What did you eat? (More detail = Better Result)</MonoLabel>
+            <div className={`moving-gradient-border-wrapper relative ${isListening ? 'recording' : ''}`}>
               <textarea
                 ref={textareaRef}
-                placeholder="Casually, What? How Much? Where?...Thats It!"
+                placeholder={isListening ? "Listening... Speak your meal now..." : "Casually, What? How Much? Where?...Thats It!"}
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 rows={4}
-                className="w-full bg-[#12100e] rounded-[1.2rem] p-4 text-sm text-[var(--text)] placeholder:text-[var(--muted)] outline-none resize-none block border-0"
+                className="w-full bg-[#12100e] rounded-[1.2rem] p-4 pb-12 text-sm text-[var(--text)] placeholder:text-[var(--muted)] outline-none resize-none block border-0"
               />
+              
+              {/* Embedded Glassmorphic Mic Button + Active Waveform */}
+              <button
+                type="button"
+                onClick={toggleListening}
+                className={`absolute bottom-3 right-3 flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded-full border backdrop-blur-md transition-all z-10 ${
+                  isListening
+                    ? 'bg-[rgba(255,77,77,0.25)] border-[var(--red)] text-[var(--red)] shadow-[0_0_16px_rgba(255,77,77,0.5)]'
+                    : 'bg-[#1a1714]/85 border-[var(--border)] text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] shadow-lg'
+                }`}
+              >
+                {isListening ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-[var(--red)] animate-ping" />
+                    <div className="flex items-center gap-0.5 h-3">
+                      <span className="waveform-bar waveform-bar-1" />
+                      <span className="waveform-bar waveform-bar-2" />
+                      <span className="waveform-bar waveform-bar-3" />
+                      <span className="waveform-bar waveform-bar-4" />
+                    </div>
+                    <span className="text-[10px] uppercase tracking-wider font-bold">Listening</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm">🎙️</span>
+                    <span className="text-[10px] uppercase tracking-wider">Voice</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
