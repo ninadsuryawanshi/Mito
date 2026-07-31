@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { format, subDays } from 'date-fns';
 import { MealLog, TimelineView, DashboardStats, MOOD_MAP } from '@/types';
 import { computeStats } from '@/lib/services/mealService';
@@ -83,6 +84,33 @@ export default function DashboardPage() {
           </a>
         </div>
       </div>
+
+      {/* Quick-Log Prompt Box with glowing moving gradient border */}
+      <Link href="/log" className="block mb-5 animate-fade-up group">
+        <div className="moving-gradient-border-wrapper">
+          <div className="bg-[#12100e] rounded-[1.2rem] p-4 flex flex-col gap-3 transition-all group-hover:bg-[#161411] active:scale-[0.99]">
+            {/* Main prompt input preview */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-[var(--text)] tracking-wide group-hover:text-[var(--accent)] transition-colors">
+                What did you eat today?
+              </span>
+              <div className="w-8 h-8 rounded-full bg-[var(--accent)] text-[#0a0908] flex items-center justify-center font-bold text-sm shadow-[0_0_15px_var(--accent-glow)] group-hover:scale-105 transition-transform">
+                ➔
+              </div>
+            </div>
+
+            {/* Quick action chips matching reference design */}
+            <div className="flex items-center gap-2 pt-0.5">
+              <span className="text-[10px] font-mono text-[var(--text2)] bg-[var(--surface2)] border border-[var(--border)] px-2.5 py-1 rounded-lg flex items-center gap-1 group-hover:border-[rgba(244,162,77,0.3)] transition-colors">
+                📷 Photo log
+              </span>
+              <span className="text-[10px] font-mono text-[var(--text2)] bg-[var(--surface2)] border border-[var(--border)] px-2.5 py-1 rounded-lg flex items-center gap-1 group-hover:border-[rgba(244,162,77,0.3)] transition-colors">
+                🎙️ Voice log
+              </span>
+            </div>
+          </div>
+        </div>
+      </Link>
 
       {/* Timeline toggle */}
       <div className="flex w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl p-1 mb-6 animate-fade-up delay-1">

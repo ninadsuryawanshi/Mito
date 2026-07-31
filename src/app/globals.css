@@ -123,3 +123,40 @@ body::after {
 
 /* Mobile safe area */
 .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
+
+/* Animated moving gradient border for quick log box */
+@keyframes borderGlowMove {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.moving-gradient-border-wrapper {
+  position: relative;
+  padding: 1.5px;
+  border-radius: 1.25rem;
+  background: linear-gradient(
+    90deg,
+    rgba(244, 162, 77, 0.95),
+    rgba(212, 131, 45, 0.3),
+    rgba(91, 184, 212, 0.4),
+    rgba(244, 162, 77, 0.95)
+  );
+  background-size: 300% 300%;
+  animation: borderGlowMove 4s ease infinite;
+  box-shadow: 0 4px 30px rgba(244, 162, 77, 0.12);
+}
+
+.moving-gradient-border-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 1.35rem;
+  background: inherit;
+  background-size: inherit;
+  animation: inherit;
+  filter: blur(12px);
+  opacity: 0.4;
+  z-index: -1;
+}
+
