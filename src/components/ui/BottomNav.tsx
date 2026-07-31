@@ -7,7 +7,6 @@ const NAV = [
   { href: '/dashboard', icon: '◎', label: 'Mirror' },
   { href: '/log',       icon: '+', label: 'Log',    primary: true },
   { href: '/rules',     icon: '⊘', label: 'Rules' },
-  { href: '/settings',  icon: '◈', label: 'You' },
 ];
 
 export default function BottomNav() {
@@ -22,7 +21,7 @@ export default function BottomNav() {
       </div>
 
       {/* Nav items */}
-      <div className="flex items-center justify-around max-w-lg mx-auto px-4 py-2 md:flex-col md:flex-1 md:justify-center md:gap-6 md:px-0 md:py-0">
+      <div className="flex items-center justify-around max-w-lg mx-auto w-full px-4 py-2 md:flex-col md:flex-1 md:justify-center md:gap-6 md:px-0 md:py-0">
         {NAV.map(item => {
           const active = path === item.href;
           if (item.primary) {
@@ -50,10 +49,13 @@ export default function BottomNav() {
         })}
       </div>
 
-      {/* Desktop footer brand mark */}
-      <div className="hidden md:flex flex-col items-center pb-6 pt-4 border-t border-[var(--border)]">
-        <span className="text-[8px] font-mono text-[var(--muted2)] uppercase tracking-widest leading-loose">mito</span>
-        <span className="text-[7px] font-mono text-[var(--muted2)] opacity-50">v1.0</span>
+      {/* Desktop settings link at bottom */}
+      <div className="hidden md:flex flex-col items-center pb-6 pt-4 border-t border-[var(--border)] gap-3">
+        <Link href="/settings"
+          className="flex flex-col items-center gap-1 text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
+          <span className="text-xl">◈</span>
+          <span className="text-[8px] font-mono uppercase tracking-widest">You</span>
+        </Link>
       </div>
     </nav>
   );

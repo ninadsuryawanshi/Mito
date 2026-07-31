@@ -62,17 +62,24 @@ export default function DashboardPage() {
           </div>
           <p className="text-xs font-mono text-[var(--muted)] uppercase tracking-widest">{today}</p>
         </div>
-        {profile?.name && (
-          <p className="text-sm text-[var(--text2)]">Hey, {profile.name.split(' ')[0]}</p>
-        )}
+        <div className="flex items-center gap-3">
+          {profile?.name && (
+            <p className="text-sm text-[var(--text2)] font-mono">Hey, {profile.name.split(' ')[0]}</p>
+          )}
+          {/* Settings link — mobile only, desktop uses sidebar */}
+          <a href="/settings"
+            className="md:hidden w-9 h-9 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-all active:scale-95">
+            <span className="text-lg">◈</span>
+          </a>
+        </div>
       </div>
 
       {/* Timeline toggle */}
-      <div className="flex bg-[var(--surface)] border border-[var(--border)] rounded-xl p-1 mb-6 animate-fade-up delay-1 max-w-xs">
+      <div className="flex w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl p-1 mb-6 animate-fade-up delay-1">
         {VIEWS.map(v => (
           <button key={v} onClick={() => setView(v)}
-            className={`flex-1 py-2 rounded-lg text-xs font-mono uppercase tracking-widest transition-all
-              ${view === v ? 'bg-[var(--accent)] text-[#0a0908] font-bold' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}>
+            className={`flex-1 py-2.5 rounded-lg text-xs font-mono uppercase tracking-widest transition-all
+              ${view === v ? 'bg-[var(--accent)] text-[#0a0908] font-bold shadow-[0_0_12px_var(--accent-glow)]' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}>
             {v}
           </button>
         ))}
