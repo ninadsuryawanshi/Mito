@@ -29,7 +29,7 @@ export default async function RootPage() {
             Sign In
           </Link>
           <Link
-            href="/login"
+            href="/signup"
             className="px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[#0a0908] font-mono text-xs font-bold hover:bg-[var(--accent2)] transition-all shadow-[0_0_20px_var(--accent-glow)] active:scale-95"
           >
             Get Started →
@@ -38,37 +38,45 @@ export default async function RootPage() {
       </header>
 
       {/* Hero Section */}
-      <main className="max-w-5xl mx-auto w-full px-6 py-12 flex flex-col items-center text-center relative z-10 my-auto">
+      <main className="max-w-6xl mx-auto w-full px-6 py-16 sm:py-24 flex flex-col items-center text-center relative z-10 my-auto">
 
         {/* Main Headline */}
         <h1
-          className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight max-w-4xl leading-[1.08] mb-6 animate-fade-up"
+          className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight max-w-5xl leading-[1.05] mb-8 animate-fade-up"
           style={{ fontFamily: 'Syne, serif' }}
         >
           Your food, reflected. <br />
-          <span className="text-[var(--accent)] italic">Without judgment.</span>
+          <span className="text-[var(--accent)] italic font-normal drop-shadow-[0_0_35px_rgba(244,162,77,0.3)]">Without judgment.</span>
         </h1>
 
         {/* Subtitle & Core Philosophy */}
-        <div className="max-w-xl mb-10 animate-fade-up delay-1">
-          <p className="text-sm sm:text-base text-[var(--muted)] leading-relaxed font-mono">
-            Mito is a personal food mirror — built to reflect, not instruct. Log meals casually in plain language, track real nutrition trends, and stay in total clarity.
+        <div className="max-w-2xl mb-12 animate-fade-up delay-1">
+          <p className="text-base sm:text-lg text-[var(--muted)] leading-relaxed font-mono">
+            Mito is a personal food mirror — built to reflect, not instruct. Log meals casually in plain language or voice dictation, track real nutrition trends, and stay in total clarity.
           </p>
-          <div className="flex items-center justify-center gap-3 mt-4 text-[11px] font-mono uppercase tracking-widest text-[var(--muted2)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+          <div className="flex items-center justify-center gap-3 mt-5 text-xs font-mono uppercase tracking-widest text-[var(--muted2)]">
+            <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
             <span>A mirror, not an instructor</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+            <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
           </div>
         </div>
 
-        {/* Call to Action */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto animate-fade-up delay-2 mb-16">
-          <Link
-            href="/login"
-            className="w-full sm:w-auto px-9 py-4 rounded-2xl bg-[var(--accent)] text-[#0a0908] font-mono font-bold text-sm hover:bg-[var(--accent2)] shadow-[0_0_35px_var(--accent-glow)] transition-all active:scale-95 text-center"
-          >
-            Start your food mirror →
-          </Link>
+        {/* Moving Gradient Interactive Prompt Box Preview */}
+        <div className="w-full max-w-3xl mb-16 animate-fade-up delay-2">
+          <div className="moving-gradient-border-wrapper shadow-[0_0_50px_rgba(244,162,77,0.25)]">
+            <Link
+              href="/signup"
+              className="w-full bg-[#12100e] rounded-[1.2rem] p-5 sm:p-6 flex items-center justify-between text-left group transition-all"
+            >
+              <span className="text-base sm:text-lg font-mono text-[var(--muted)] group-hover:text-[var(--text)] transition-colors pr-4">
+                Hey there, what did you eat today?
+              </span>
+              <div className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--accent)] text-[#0a0908] font-mono text-xs sm:text-sm font-bold shadow-[0_0_20px_var(--accent-glow)] group-hover:scale-105 transition-transform shrink-0">
+                <span>Try Mito</span>
+                <span>→</span>
+              </div>
+            </Link>
+          </div>
         </div>
 
         {/* Feature Cards Grid */}

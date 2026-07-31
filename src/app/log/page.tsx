@@ -78,7 +78,7 @@ function LogContent() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioChunksRef.current = [];
-      
+
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
 
@@ -98,7 +98,7 @@ function LogContent() {
         }
 
         setIsTranscribing(true);
-        toast('⏳ Transcribing audio with AI Whisper...', 'info');
+        toast('Transcribing audio with AI Whisper...', 'info');
 
         try {
           const formData = new FormData();
@@ -271,13 +271,13 @@ function LogContent() {
     setAnalysis({
       ...analysis,
       items: analysis.items.filter((_, i) => i !== index),
-      total_calories:   Math.max(0, analysis.total_calories   - item.calories),
-      total_protein_g:  Math.max(0, analysis.total_protein_g  - item.protein_g),
-      total_carbs_g:    Math.max(0, analysis.total_carbs_g    - item.carbs_g),
-      total_fat_g:      Math.max(0, analysis.total_fat_g      - item.fat_g),
-      total_fiber_g:    Math.max(0, analysis.total_fiber_g    - item.fiber_g),
-      total_sugar_g:    Math.max(0, analysis.total_sugar_g    - item.sugar_g),
-      total_sodium_mg:  Math.max(0, analysis.total_sodium_mg  - item.sodium_mg),
+      total_calories: Math.max(0, analysis.total_calories - item.calories),
+      total_protein_g: Math.max(0, analysis.total_protein_g - item.protein_g),
+      total_carbs_g: Math.max(0, analysis.total_carbs_g - item.carbs_g),
+      total_fat_g: Math.max(0, analysis.total_fat_g - item.fat_g),
+      total_fiber_g: Math.max(0, analysis.total_fiber_g - item.fiber_g),
+      total_sugar_g: Math.max(0, analysis.total_sugar_g - item.sugar_g),
+      total_sodium_mg: Math.max(0, analysis.total_sodium_mg - item.sodium_mg),
     });
   }
 
@@ -329,7 +329,7 @@ function LogContent() {
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6">
       <Spinner size="lg" />
       <p className="font-mono text-[var(--muted)] text-xs uppercase tracking-widest">Analyzing nutrition...</p>
-  {description && <p className="text-sm text-[var(--text2)] text-center max-w-xs italic">&quot;{description}&quot;</p>}
+      {description && <p className="text-sm text-[var(--text2)] text-center max-w-xs italic">&quot;{description}&quot;</p>}
     </div>
   );
 
@@ -384,27 +384,26 @@ function LogContent() {
                   isTranscribing
                     ? "Transcribing voice note with AI Whisper..."
                     : isListening
-                    ? "Recording... Tap button below when done..."
-                    : "Casually, What? How Much? Where?...Thats It!"
+                      ? "Recording... Tap button below when done..."
+                      : "Casually, What? How Much? Where?...Thats It!"
                 }
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 rows={4}
                 className="w-full bg-[#12100e] rounded-[1.2rem] p-4 pb-12 text-sm text-[var(--text)] placeholder:text-[var(--muted)] outline-none resize-none block border-0"
               />
-              
+
               {/* Embedded Glassmorphic Mic Button + Active Waveform */}
               <button
                 type="button"
                 onClick={toggleListening}
                 disabled={isTranscribing}
-                className={`absolute bottom-3 right-3 flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded-full border backdrop-blur-md transition-all z-10 ${
-                  isTranscribing
-                    ? 'bg-[rgba(244,162,77,0.25)] border-[var(--accent)] text-[var(--accent)] animate-pulse shadow-[0_0_16px_rgba(244,162,77,0.5)] cursor-wait'
-                    : isListening
+                className={`absolute bottom-3 right-3 flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded-full border backdrop-blur-md transition-all z-10 ${isTranscribing
+                  ? 'bg-[rgba(244,162,77,0.25)] border-[var(--accent)] text-[var(--accent)] animate-pulse shadow-[0_0_16px_rgba(244,162,77,0.5)] cursor-wait'
+                  : isListening
                     ? 'bg-[rgba(255,77,77,0.25)] border-[var(--red)] text-[var(--red)] shadow-[0_0_16px_rgba(255,77,77,0.5)]'
                     : 'bg-[#1a1714]/85 border-[var(--border)] text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] shadow-lg'
-                }`}
+                  }`}
               >
                 {isTranscribing ? (
                   <>

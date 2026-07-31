@@ -23,7 +23,16 @@ export default function SignupPage() {
       email, password,
       options: { data: { name } },
     });
-    if (err) { setError(err.message); setLoading(false); return; }
+    if (err) {
+      const msg = err.message.toLowerCase();
+      if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('user_already_exists')) {
+        setError('An account with this email already exists. Please sign in below.');
+      } else {
+        setError(err.message);
+      }
+      setLoading(false);
+      return;
+    }
     router.push('/onboarding');
     router.refresh();
   }
