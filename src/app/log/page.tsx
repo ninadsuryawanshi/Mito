@@ -290,14 +290,19 @@ function LogContent() {
           </div>
 
           {/* Description */}
-          <Textarea
-            ref={textareaRef}
-            label="What did you eat? (More detail = Better Result)"
-            placeholder="Casually, What? How Much? Where?...Thats It!"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            rows={4}
-          />
+          <div>
+            <MonoLabel className="mb-2 block">What did you eat? (More detail = Better Result)</MonoLabel>
+            <div className="moving-gradient-border-wrapper">
+              <textarea
+                ref={textareaRef}
+                placeholder="Casually, What? How Much? Where?...Thats It!"
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                rows={4}
+                className="w-full bg-[#12100e] rounded-[1.2rem] p-4 text-sm text-[var(--text)] placeholder:text-[var(--muted)] outline-none resize-none block border-0"
+              />
+            </div>
+          </div>
 
           {/* Quick re-log recent meals */}
           {recentMeals.length > 0 && (
