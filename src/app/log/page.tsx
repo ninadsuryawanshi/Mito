@@ -61,9 +61,11 @@ function LogContent() {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const [isListening, setIsListening] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     fetch('/api/meals?recent=true')
@@ -72,57 +74,79 @@ function LogContent() {
       .catch(console.error);
   }, []);
 
-  function toggleListening() {
-    if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
-      return;
-    }
-
-    const SpeechRecognition = (typeof window !== 'undefined' && ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
-    if (!SpeechRecognition) {
-      toast('Speech recognition is not supported on this browser.', 'error');
-      return;
-    }
-
+  async function startRecording() {
     try {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunksRef.current = [];
+      
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
 
-      recognition.onstart = () => {
-        setIsListening(true);
-        toast('🎙️ Listening... speak your meal', 'info');
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
 
-      recognition.onresult = (event: any) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          if (event.results[i].isFinal) {
-            transcript += event.results[i][0].transcript;
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop());
+
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        if (audioBlob.size < 500) {
+          setIsListening(false);
+          return;
+        }
+
+        setIsTranscribing(true);
+        toast('⏳ Transcribing audio with AI Whisper...', 'info');
+
+        try {
+          const formData = new FormData();
+          formData.append('file', audioBlob, 'audio.webm');
+
+          const res = await fetch('/api/transcribe', {
+            method: 'POST',
+            body: formData,
+          });
+
+          const data = await res.json();
+          if (res.ok && data.transcript) {
+            setDescription((prev) => (prev ? `${prev.trim()} ${data.transcript.trim()}` : data.transcript.trim()));
+            toast('✨ Voice transcribed!', 'success');
+          } else {
+            toast(data.error || 'Transcription failed', 'error');
           }
+        } catch (err: any) {
+          console.error('Transcription error:', err);
+          toast('Failed to transcribe voice note', 'error');
+        } finally {
+          setIsTranscribing(false);
+          setIsListening(false);
         }
-        if (transcript) {
-          setDescription((prev) => (prev ? `${prev.trim()} ${transcript.trim()}` : transcript.trim()));
-        }
       };
 
-      recognition.onerror = (event: any) => {
-        console.warn('Speech recognition error:', event.error);
-        setIsListening(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognitionRef.current = recognition;
-      recognition.start();
-    } catch (e) {
-      console.error(e);
-      toast('Unable to start microphone', 'error');
+      mediaRecorder.start();
+      setIsListening(true);
+      toast('🎙️ Recording... Tap button when finished speaking', 'info');
+    } catch (e: any) {
+      console.error('Microphone access error:', e);
+      toast('Microphone access denied or unavailable.', 'error');
       setIsListening(false);
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+  }
+
+  function toggleListening() {
+    if (isTranscribing) return;
+    if (isListening) {
+      stopRecording();
+    } else {
+      startRecording();
     }
   }
 
@@ -356,7 +380,13 @@ function LogContent() {
             <div className={`moving-gradient-border-wrapper relative ${isListening ? 'recording' : ''}`}>
               <textarea
                 ref={textareaRef}
-                placeholder={isListening ? "Listening... Speak your meal now..." : "Casually, What? How Much? Where?...Thats It!"}
+                placeholder={
+                  isTranscribing
+                    ? "Transcribing voice note with AI Whisper..."
+                    : isListening
+                    ? "Recording... Tap button below when done..."
+                    : "Casually, What? How Much? Where?...Thats It!"
+                }
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 rows={4}
@@ -367,13 +397,21 @@ function LogContent() {
               <button
                 type="button"
                 onClick={toggleListening}
+                disabled={isTranscribing}
                 className={`absolute bottom-3 right-3 flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded-full border backdrop-blur-md transition-all z-10 ${
-                  isListening
+                  isTranscribing
+                    ? 'bg-[rgba(244,162,77,0.25)] border-[var(--accent)] text-[var(--accent)] animate-pulse shadow-[0_0_16px_rgba(244,162,77,0.5)] cursor-wait'
+                    : isListening
                     ? 'bg-[rgba(255,77,77,0.25)] border-[var(--red)] text-[var(--red)] shadow-[0_0_16px_rgba(255,77,77,0.5)]'
                     : 'bg-[#1a1714]/85 border-[var(--border)] text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] shadow-lg'
                 }`}
               >
-                {isListening ? (
+                {isTranscribing ? (
+                  <>
+                    <span className="text-xs animate-spin">⚡</span>
+                    <span className="text-[10px] uppercase tracking-wider font-bold">Transcribing...</span>
+                  </>
+                ) : isListening ? (
                   <>
                     <span className="w-2 h-2 rounded-full bg-[var(--red)] animate-ping" />
                     <div className="flex items-center gap-0.5 h-3">
@@ -382,7 +420,7 @@ function LogContent() {
                       <span className="waveform-bar waveform-bar-3" />
                       <span className="waveform-bar waveform-bar-4" />
                     </div>
-                    <span className="text-[10px] uppercase tracking-wider font-bold">Listening</span>
+                    <span className="text-[10px] uppercase tracking-wider font-bold">Stop & Send</span>
                   </>
                 ) : (
                   <>
