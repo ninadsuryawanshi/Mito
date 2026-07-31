@@ -62,9 +62,19 @@ export default function DashboardPage() {
           </div>
           <p className="text-xs font-mono text-[var(--muted)] uppercase tracking-widest">{today}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          {/* Streak badge — minimal, inline in header */}
+          {streak > 0 && (
+            <div
+              title={`${streak}-day streak`}
+              className="flex flex-col items-center justify-center w-9 h-9 rounded-xl bg-[rgba(244,162,77,0.08)] border border-[rgba(244,162,77,0.25)] shrink-0"
+            >
+              <span className="text-[10px] font-bold text-[var(--accent)] leading-none">{streak}</span>
+              <span className="text-[8px] font-mono text-[var(--accent)] opacity-70 leading-none mt-0.5">day</span>
+            </div>
+          )}
           {profile?.name && (
-            <p className="text-sm text-[var(--text2)] font-mono">Hey, {profile.name.split(' ')[0]}</p>
+            <p className="text-sm text-[var(--text2)] font-mono hidden sm:block">Hey, {profile.name.split(' ')[0]}</p>
           )}
           {/* Settings link — mobile only, desktop uses sidebar */}
           <a href="/settings"
