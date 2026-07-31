@@ -203,23 +203,32 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-3 animate-fade-up delay-2">
-                {/* Static (non-animated) skeleton goal cards — no data yet */}
-                {['Calories', 'Protein', 'Fiber', 'Sugar', 'Sodium'].map((label) => (
-                  <div key={label} className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4">
-                    <p className="text-[10px] font-mono text-[var(--muted)] uppercase tracking-widest mb-3">{label}</p>
-                    <div className="skeleton-static h-8 w-24 mb-3" />
-                    <div className="skeleton-static h-1.5 w-full rounded-full mb-2" />
-                    <div className="skeleton-static h-3 w-32" />
-                  </div>
-                ))}
-                {/* Quick stats static skeleton */}
-                <div className="grid grid-cols-4 gap-2">
-                  {['Spent', 'Meals', 'Out', 'Streak'].map(l => (
-                    <div key={l} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-2.5 text-center">
-                      <div className="skeleton-static h-5 w-8 mx-auto mb-2" />
-                      <p className="text-[9px] font-mono text-[var(--muted)] uppercase tracking-widest">{l}</p>
-                    </div>
+              <div className="flex flex-col items-center justify-center py-10 px-6 bg-[var(--surface)] border border-dashed border-[var(--border)] rounded-3xl gap-5 text-center animate-fade-up delay-2 relative overflow-hidden min-h-[340px]">
+                {/* Ambient glow */}
+                <div className="absolute inset-0 bg-[var(--accent)] opacity-[0.025] blur-3xl pointer-events-none rounded-3xl" />
+
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-2xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center text-3xl select-none animate-float shrink-0">
+                  🪞
+                </div>
+
+                {/* Text */}
+                <div className="relative z-10">
+                  <p className="text-base font-bold text-[var(--text)] mb-2" style={{ fontFamily: 'Syne, serif' }}>
+                    Mirror&apos;s empty.
+                  </p>
+                  <p className="text-xs font-mono text-[var(--muted)] leading-relaxed max-w-[220px]">
+                    Your nutrition reflects what you eat.<br />
+                    Nothing logged yet — feed the mirror.
+                  </p>
+                </div>
+
+                {/* Subtle stat labels to show what will appear */}
+                <div className="flex gap-2 flex-wrap justify-center relative z-10">
+                  {['Calories', 'Protein', 'Fiber', 'Sugar', 'Sodium'].map(l => (
+                    <span key={l} className="text-[9px] font-mono uppercase tracking-widest text-[var(--muted2)] border border-[var(--border)] rounded-full px-2.5 py-1">
+                      {l}
+                    </span>
                   ))}
                 </div>
               </div>
