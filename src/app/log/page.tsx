@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { AIMealAnalysis } from '@/types';
@@ -32,7 +32,7 @@ function makeDatePresets() {
   });
 }
 
-export default function LogPage() {
+function LogContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -578,5 +578,19 @@ export default function LogPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function LogPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Spinner size="lg" />
+        </div>
+      }
+    >
+      <LogContent />
+    </Suspense>
   );
 }
