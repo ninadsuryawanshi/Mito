@@ -1,6 +1,6 @@
 import { AIMealAnalysis, AIFoodItem, DashboardStats } from '@/types';
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 async function callGroq(prompt: string): Promise<string> {
@@ -282,16 +282,15 @@ export function computeWHORecommendations(
 }
 
 // ─── Photo Meal Analysis ──────────────────────────────────────────────────────
-// Sends image + optional context to Gemini Vision
-// Uses gemini-2.0-flash which supports multimodal (vision) input
+// Sends image + optional context to Gemini Vision with Groq Vision fallback
 
-export async function analyzeMealFromPhoto(
+async function analyzeMealFromPhotoGroq(
   base64Image: string,
   mimeType: string,
   additionalContext?: string
 ): Promise<AIMealAnalysis> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY not set');
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error('GROQ_API_KEY not set');
 
   const prompt = `Analyze this food photo. ${additionalContext ? `Context: ${additionalContext}` : ''}
 Return ONLY valid JSON matching this schema:
@@ -303,33 +302,33 @@ Return ONLY valid JSON matching this schema:
   "serving_assumption":"string if assumed else null"
 }`;
 
-  const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+  const response = await fetch(GROQ_API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({
-      contents: [{
-        parts: [
-          { inline_data: { mime_type: mimeType, data: base64Image } },
-          { text: prompt }
-        ]
-      }],
-      generationConfig: {
-        temperature: 0.2,
-        responseMimeType: 'application/json',
-      },
-    }),
+      model: 'llama-3.2-11b-vision-preview',
+      temperature: 0.2,
+      max_tokens: 2048,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Image}` } }
+          ]
+        }
+      ]
+    })
   });
 
-  if (!response.ok) throw new Error(`Gemini Vision error: ${await response.text()}`);
-
+  if (!response.ok) throw new Error(`Groq Vision error: ${await response.text()}`);
   const data = await response.json();
-  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!raw) throw new Error('Empty response from Gemini Vision');
+  const raw = data.choices?.[0]?.message?.content;
+  if (!raw) throw new Error('Empty response from Groq Vision');
 
   const clean = raw.replace(/```json\n?|\n?```/g, '').trim();
   const parsed = JSON.parse(clean) as AIMealAnalysis;
 
-  // Recompute totals from items
   parsed.total_calories = parsed.items.reduce((s, i) => s + (i.calories || 0), 0);
   parsed.total_protein_g = parsed.items.reduce((s, i) => s + (i.protein_g || 0), 0);
   parsed.total_carbs_g = parsed.items.reduce((s, i) => s + (i.carbs_g || 0), 0);
@@ -339,4 +338,78 @@ Return ONLY valid JSON matching this schema:
   parsed.total_sodium_mg = parsed.items.reduce((s, i) => s + (i.sodium_mg || 0), 0);
 
   return parsed;
+}
+
+export async function analyzeMealFromPhoto(
+  base64Image: string,
+  mimeType: string,
+  additionalContext?: string
+): Promise<AIMealAnalysis> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  
+  if (apiKey) {
+    try {
+      const prompt = `Analyze this food photo. ${additionalContext ? `Context: ${additionalContext}` : ''}
+Return ONLY valid JSON matching this schema:
+{
+  "items": [{"name":"string","brand":null,"quantity":number,"unit":"piece|bowl|glass|plate|g|ml","cuisine":"string","region":null,"typical_context":"restaurant|home|packaged|street","calories":number,"protein_g":number,"carbs_g":number,"fat_g":number,"fiber_g":number,"sugar_g":number,"sodium_mg":number}],
+  "total_calories":number,"total_protein_g":number,"total_carbs_g":number,"total_fat_g":number,"total_fiber_g":number,"total_sugar_g":number,"total_sodium_mg":number,
+  "eating_context":"restaurant|home|ordered_in|street|packaged",
+  "ai_note":"1 sentence about this meal",
+  "serving_assumption":"string if assumed else null"
+}`;
+
+      const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { inline_data: { mime_type: mimeType, data: base64Image } },
+              { text: prompt }
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.2,
+            responseMimeType: 'application/json',
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (raw) {
+          const clean = raw.replace(/```json\n?|\n?```/g, '').trim();
+          const parsed = JSON.parse(clean) as AIMealAnalysis;
+
+          parsed.total_calories = parsed.items.reduce((s, i) => s + (i.calories || 0), 0);
+          parsed.total_protein_g = parsed.items.reduce((s, i) => s + (i.protein_g || 0), 0);
+          parsed.total_carbs_g = parsed.items.reduce((s, i) => s + (i.carbs_g || 0), 0);
+          parsed.total_fat_g = parsed.items.reduce((s, i) => s + (i.fat_g || 0), 0);
+          parsed.total_fiber_g = parsed.items.reduce((s, i) => s + (i.fiber_g || 0), 0);
+          parsed.total_sugar_g = parsed.items.reduce((s, i) => s + (i.sugar_g || 0), 0);
+          parsed.total_sodium_mg = parsed.items.reduce((s, i) => s + (i.sodium_mg || 0), 0);
+
+          return parsed;
+        }
+      } else {
+        const errText = await response.text();
+        console.warn('Gemini Vision failed/rate limited, trying Groq fallback:', errText);
+      }
+    } catch (e: any) {
+      console.warn('Gemini Vision error, trying Groq fallback:', e);
+    }
+  }
+
+  // Fallback to Groq Vision
+  if (process.env.GROQ_API_KEY) {
+    try {
+      return await analyzeMealFromPhotoGroq(base64Image, mimeType, additionalContext);
+    } catch (groqErr) {
+      console.warn('Groq Vision fallback error:', groqErr);
+    }
+  }
+
+  throw new Error('AI Vision rate limit temporarily reached. Please wait a few seconds and try again, or type a text description of your meal.');
 }

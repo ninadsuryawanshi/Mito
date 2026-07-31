@@ -60,8 +60,10 @@ function LogContent() {
   const [dateEdited, setDateEdited] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+  const [isListening, setIsListening] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     fetch('/api/meals?recent=true')
@@ -70,13 +72,72 @@ function LogContent() {
       .catch(console.error);
   }, []);
 
+  function toggleListening() {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = (typeof window !== 'undefined' && ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
+    if (!SpeechRecognition) {
+      toast('Speech recognition is not supported on this browser.', 'error');
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        toast('🎙️ Listening... speak your meal', 'info');
+      };
+
+      recognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            transcript += event.results[i][0].transcript;
+          }
+        }
+        if (transcript) {
+          setDescription((prev) => (prev ? `${prev.trim()} ${transcript.trim()}` : transcript.trim()));
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (e) {
+      console.error(e);
+      toast('Unable to start microphone', 'error');
+      setIsListening(false);
+    }
+  }
+
   useEffect(() => {
     const mode = searchParams.get('mode');
     const autoFocus = searchParams.get('autoFocus');
 
     if (mode === 'photo') {
       setTimeout(() => fileRef.current?.click(), 300);
-    } else if (mode === 'voice' || autoFocus === 'true') {
+    } else if (mode === 'voice') {
+      setTimeout(() => {
+        textareaRef.current?.focus();
+        toggleListening();
+      }, 400);
+    } else if (autoFocus === 'true') {
       setTimeout(() => textareaRef.current?.focus(), 250);
     }
   }, [searchParams]);
@@ -291,7 +352,21 @@ function LogContent() {
 
           {/* Description */}
           <div>
-            <MonoLabel className="mb-2 block">What did you eat? (More detail = Better Result)</MonoLabel>
+            <div className="flex items-center justify-between mb-2">
+              <MonoLabel>What did you eat? (More detail = Better Result)</MonoLabel>
+              <button
+                type="button"
+                onClick={toggleListening}
+                className={`flex items-center gap-1.5 text-xs font-mono px-2.5 py-1 rounded-lg border transition-all ${
+                  isListening
+                    ? 'bg-[rgba(224,92,92,0.2)] border-[var(--red)] text-[var(--red)] animate-pulse shadow-[0_0_12px_rgba(224,92,92,0.4)]'
+                    : 'bg-[var(--surface2)] border-[var(--border)] text-[var(--text2)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
+                }`}
+              >
+                <span>🎙️</span>
+                <span>{isListening ? 'Listening...' : 'Voice Log'}</span>
+              </button>
+            </div>
             <div className="moving-gradient-border-wrapper">
               <textarea
                 ref={textareaRef}

@@ -416,6 +416,7 @@ function StatPill({ label, value, color }: { label: string; value: string; color
 function MealCard({ meal, index, onDelete }: { meal: MealLog; index: number; onDelete: () => void }) {
   const [showMood, setShowMood] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const foodNames = meal.items?.map(i => i.food_entity?.name).filter(Boolean).join(', ') || 'Meal';
   const time = format(new Date(meal.logged_at), 'h:mm a');
@@ -438,7 +439,7 @@ function MealCard({ meal, index, onDelete }: { meal: MealLog; index: number; onD
   }
 
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 animate-fade-up"
+    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 animate-fade-up transition-all hover:border-[rgba(244,162,77,0.3)]"
       style={{ animationDelay: `${index * 0.05}s`, opacity: 0 }}>
       <div className="relative pl-3 border-l-2 border-[var(--accent)]">
         <div className="flex items-start justify-between gap-2">
@@ -477,14 +478,75 @@ function MealCard({ meal, index, onDelete }: { meal: MealLog; index: number; onD
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2 mt-3">
-          <Badge color="accent">🔥 {Math.round(meal.total_calories || 0)} kcal</Badge>
-          <Badge color="blue">P {Math.round(meal.total_protein_g || 0)}g</Badge>
-          <Badge color="muted">C {Math.round(meal.total_carbs_g || 0)}g</Badge>
-          {meal.price && meal.price > 0 && <Badge color="green">₹{meal.price}</Badge>}
+        <div className="flex flex-wrap items-center justify-between gap-2 mt-3">
+          <div className="flex flex-wrap gap-2">
+            <Badge color="accent">🔥 {Math.round(meal.total_calories || 0)} kcal</Badge>
+            <Badge color="blue">P {Math.round(meal.total_protein_g || 0)}g</Badge>
+            <Badge color="muted">C {Math.round(meal.total_carbs_g || 0)}g</Badge>
+            {meal.price && meal.price > 0 && <Badge color="green">₹{meal.price}</Badge>}
+          </div>
+
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-[10px] font-mono text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors"
+          >
+            <span>{expanded ? 'Collapse' : 'Items & Details'}</span>
+            <span className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>▾</span>
+          </button>
         </div>
 
         {meal.ai_note && <p className="text-[11px] text-[var(--muted)] mt-2 italic">{meal.ai_note}</p>}
+
+        {/* Expandable Breakdown */}
+        {expanded && (
+          <div className="mt-4 pt-3 border-t border-[var(--border)] animate-fade-in flex flex-col gap-3">
+            {/* Individual Food Items */}
+            {meal.items && meal.items.length > 0 && (
+              <div>
+                <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--muted)] mb-2">Food Breakdown</p>
+                <div className="flex flex-col gap-1.5">
+                  {meal.items.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs bg-[var(--surface2)] px-3 py-2 rounded-xl">
+                      <div>
+                        <span className="font-medium text-[var(--text)]">{item.food_entity?.name || 'Item'}</span>
+                        <span className="text-[10px] font-mono text-[var(--muted)] ml-2">
+                          ({item.quantity} {item.unit})
+                        </span>
+                      </div>
+                      <div className="text-[10px] font-mono text-[var(--muted)] flex gap-2">
+                        <span>{Math.round(item.calories || 0)} kcal</span>
+                        <span className="text-[var(--accent)]">P: {Math.round(item.protein_g || 0)}g</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Micronutrient Matrix */}
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--muted)] mb-2">Full Nutrition Matrix</p>
+              <div className="grid grid-cols-4 gap-2 text-center text-xs font-mono">
+                <div className="bg-[var(--surface2)] p-2 rounded-xl">
+                  <p className="text-[9px] text-[var(--muted)] uppercase">Fat</p>
+                  <p className="font-bold text-[var(--text)] mt-0.5">{Math.round(meal.total_fat_g || 0)}g</p>
+                </div>
+                <div className="bg-[var(--surface2)] p-2 rounded-xl">
+                  <p className="text-[9px] text-[var(--muted)] uppercase">Fiber</p>
+                  <p className="font-bold text-[var(--green)] mt-0.5">{Math.round(meal.total_fiber_g || 0)}g</p>
+                </div>
+                <div className="bg-[var(--surface2)] p-2 rounded-xl">
+                  <p className="text-[9px] text-[var(--muted)] uppercase">Sugar</p>
+                  <p className="font-bold text-[var(--red)] mt-0.5">{Math.round(meal.total_sugar_g || 0)}g</p>
+                </div>
+                <div className="bg-[var(--surface2)] p-2 rounded-xl">
+                  <p className="text-[9px] text-[var(--muted)] uppercase">Sodium</p>
+                  <p className="font-bold text-[var(--muted)] mt-0.5">{Math.round(meal.total_sodium_mg || 0)}mg</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
