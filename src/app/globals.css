@@ -145,6 +145,7 @@ body::after {
   background-size: 300% 300%;
   animation: borderGlowMove 4s ease infinite;
   box-shadow: 0 4px 30px rgba(244, 162, 77, 0.12);
+  transition: box-shadow 0.3s ease, padding 0.3s ease;
 }
 
 .moving-gradient-border-wrapper::after {
@@ -158,5 +159,17 @@ body::after {
   filter: blur(12px);
   opacity: 0.4;
   z-index: -1;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+/* Active focus state — intense golden glow when focused/selected */
+.moving-gradient-border-wrapper:focus-within {
+  padding: 2px;
+  box-shadow: 0 0 35px rgba(244, 162, 77, 0.45);
+}
+
+.moving-gradient-border-wrapper:focus-within::after {
+  opacity: 0.85;
+  filter: blur(18px);
 }
 
