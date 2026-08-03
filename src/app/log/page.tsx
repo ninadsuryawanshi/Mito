@@ -9,6 +9,13 @@ import { useToast } from '@/components/ui/ToastContext';
 type Step = 'input' | 'analyzing' | 'review' | 'saving' | 'done';
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
 
+const ANALYZE_STAGES = [
+  'Decomposing meal items and portions',
+  'Calculating calories, protein and macros',
+  'Checking against your food rules',
+  'Finalizing nutritional breakdown',
+];
+
 // Quick time presets — most common log times
 const TIME_PRESETS = [
   { label: 'Now', getValue: () => format(new Date(), 'HH:mm') },
@@ -66,6 +73,19 @@ function LogContent() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+
+  const [analyzingStage, setAnalyzingStage] = useState(0);
+
+  useEffect(() => {
+    if (step !== 'analyzing') {
+      setAnalyzingStage(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setAnalyzingStage(prev => (prev < ANALYZE_STAGES.length - 1 ? prev + 1 : prev));
+    }, 1800);
+    return () => clearInterval(interval);
+  }, [step]);
 
   useEffect(() => {
     fetch('/api/meals?recent=true')
@@ -330,10 +350,44 @@ function LogContent() {
   );
 
   if (step === 'analyzing') return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6">
-      <Spinner size="lg" />
-      <p className="font-mono text-[var(--muted)] text-xs uppercase tracking-widest">Analyzing nutrition...</p>
-      {description && <p className="text-sm text-[var(--text2)] text-center max-w-xs italic">&quot;{description}&quot;</p>}
+    <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6 px-6 max-w-md mx-auto animate-fade-up">
+      {/* Sleek Minimalist Concentric Glowing Orb */}
+      <div className="relative flex items-center justify-center w-24 h-24">
+        <div className="absolute inset-0 rounded-full bg-[rgba(244,162,77,0.15)] animate-ping opacity-30" />
+        <div className="absolute inset-2 rounded-full bg-[rgba(244,162,77,0.2)] animate-pulse" />
+        <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-[#F4A24D] to-[#d47b25] shadow-[0_0_30px_rgba(244,162,77,0.4)] flex items-center justify-center">
+          <div className="w-4 h-4 rounded-full bg-[#0a0908] animate-pulse" />
+        </div>
+      </div>
+
+      {/* Dynamic Step Text */}
+      <div className="text-center flex flex-col items-center gap-2">
+        <p className="font-mono text-xs text-[var(--accent)] uppercase tracking-widest font-semibold">
+          Step {analyzingStage + 1} of {ANALYZE_STAGES.length}
+        </p>
+        <p key={analyzingStage} className="text-base font-medium text-[var(--text)] transition-all animate-fade-up" style={{ fontFamily: 'Syne, serif' }}>
+          {ANALYZE_STAGES[analyzingStage]}
+        </p>
+      </div>
+
+      {/* Minimalist Segmented Progress Bar */}
+      <div className="w-full max-w-xs flex gap-1.5 mt-1">
+        {ANALYZE_STAGES.map((_, i) => (
+          <div
+            key={i}
+            className={`h-1 flex-1 rounded-full transition-all duration-500 ${
+              i <= analyzingStage ? 'bg-[var(--accent)] shadow-[0_0_8px_var(--accent)]' : 'bg-[var(--border)]'
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* User's Input Summary */}
+      {description && (
+        <p className="text-xs text-[var(--muted)] text-center max-w-xs italic line-clamp-2 mt-2">
+          {description}
+        </p>
+      )}
     </div>
   );
 
