@@ -12,15 +12,22 @@ export default function RulesPage() {
   const [saving, setSaving] = useState(false);
   const [suggestions, setSuggestions] = useState<Array<{ name: string; count: number }>>([]);
 
+  const [ruleStreak, setRuleStreak] = useState<number>(0);
+
   async function fetchRules() {
-    const [rulesRes, suggRes] = await Promise.all([
+    const [rulesRes, suggRes, streakRes] = await Promise.all([
       fetch('/api/rules'),
       fetch('/api/rules/suggestions').catch(() => null),
+      fetch('/api/rules/streak').catch(() => null),
     ]);
     const { rules: r } = await rulesRes.json();
     if (suggRes) {
       const { suggestions: s } = await suggRes.json().catch(() => ({ suggestions: [] }));
       setSuggestions(s || []);
+    }
+    if (streakRes) {
+      const { rule_streak: st } = await streakRes.json().catch(() => ({ rule_streak: 0 }));
+      setRuleStreak(st || 0);
     }
     setRules(r || []);
     setLoading(false);
@@ -54,9 +61,12 @@ export default function RulesPage() {
     fetchRules();
   }
 
+  const MILESTONES = [3, 7, 14, 30, 60, 90, 100];
+  const isMilestone = MILESTONES.includes(ruleStreak);
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-8 animate-fade-up">
+      <div className="flex items-center justify-between mb-6 animate-fade-up">
         <div>
           <h1 className="text-2xl font-bold" style={{ fontFamily: 'Syne, serif' }}>Rules</h1>
           <p className="text-xs font-mono text-[var(--muted)] mt-1 uppercase tracking-widest">Your personal food rules</p>
@@ -64,6 +74,42 @@ export default function RulesPage() {
         <Button variant="secondary" size="sm" onClick={() => setAdding(!adding)}>
           {adding ? 'Cancel' : '+ Add rule'}
         </Button>
+      </div>
+
+      {/* Clean Streak Card */}
+      <div className="bg-[var(--surface)] border border-[rgba(244,162,77,0.25)] rounded-2xl p-5 mb-6 animate-fade-up relative overflow-hidden flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-[rgba(244,162,77,0.08)] border border-[rgba(244,162,77,0.25)] flex items-center justify-center shrink-0">
+            <svg className="w-6 h-6 text-[var(--accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="M9 12l2 2 4-4" />
+            </svg>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-base font-bold text-[var(--text)]" style={{ fontFamily: 'Syne, serif' }}>
+                Clean Streak
+              </span>
+              {isMilestone && (
+                <span className="text-[10px] font-mono font-bold bg-[rgba(244,162,77,0.2)] text-[var(--accent)] border border-[rgba(244,162,77,0.4)] px-2.5 py-0.5 rounded-full animate-bounce flex items-center gap-1">
+                  ✨ Milestone Reached!
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-[var(--muted)] font-mono mt-0.5">
+              {ruleStreak > 0
+                ? `${ruleStreak} consecutive day${ruleStreak > 1 ? 's' : ''} with zero rules broken`
+                : 'No active streak yet — log meals without breaking rules to build discipline'}
+            </p>
+          </div>
+        </div>
+
+        <div className="text-right shrink-0">
+          <div className="text-2xl font-bold text-[var(--accent)]" style={{ fontFamily: 'Syne, serif' }}>
+            {ruleStreak}
+          </div>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--muted)]">days</span>
+        </div>
       </div>
 
       {adding && (
@@ -103,6 +149,18 @@ export default function RulesPage() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
                   <p className="font-medium text-sm" style={{ fontFamily: 'Syne, serif' }}>{rule.description}</p>
+                  
+                  {/* Monthly Breach Counter Badge */}
+                  <div className="mt-2.5 flex items-center gap-2">
+                    {rule.monthly_breaches_count === 0 ? (
+                      <Badge color="green">✓ 0 breaches this month</Badge>
+                    ) : (
+                      <Badge color="red">
+                        ⊘ {rule.monthly_breaches_count} breach{rule.monthly_breaches_count! > 1 ? 'es' : ''} this month
+                      </Badge>
+                    )}
+                  </div>
+
                   <div className="flex flex-wrap gap-1.5 mt-3">
                     {rule.keywords.slice(0, 6).map(kw => (
                       <Badge key={kw} color="muted">{kw}</Badge>

@@ -129,6 +129,7 @@ export interface PersonalRule {
   keywords: string[];
   active: boolean;
   created_at: string;
+  monthly_breaches_count?: number;
 }
 
 export interface RuleTrace {

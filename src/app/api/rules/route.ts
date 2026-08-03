@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/db/server';
 import { expandRuleKeywords } from '@/lib/ai/gemini';
+import { startOfMonth } from 'date-fns';
 
 export async function GET(req: NextRequest) {
   try {
@@ -8,6 +9,7 @@ export async function GET(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    // Fetch personal rules
     const { data: rules, error } = await supabase
       .from('personal_rules')
       .select('*')
@@ -16,7 +18,29 @@ export async function GET(req: NextRequest) {
 
     if (error) throw error;
 
-    return NextResponse.json({ rules: rules || [] });
+    // Fetch rule traces for the current month
+    const startOfCurrentMonth = startOfMonth(new Date()).toISOString();
+    const { data: traces } = await supabase
+      .from('rule_traces')
+      .select('rule_id')
+      .eq('user_id', user.id)
+      .gte('triggered_at', startOfCurrentMonth);
+
+    // Count breaches per rule_id
+    const breachCounts: Record<string, number> = {};
+    (traces || []).forEach((t: { rule_id: string }) => {
+      if (t.rule_id) {
+        breachCounts[t.rule_id] = (breachCounts[t.rule_id] || 0) + 1;
+      }
+    });
+
+    // Attach monthly_breaches_count to rules
+    const rulesWithCounts = (rules || []).map((r: any) => ({
+      ...r,
+      monthly_breaches_count: breachCounts[r.rule_id] || 0,
+    }));
+
+    return NextResponse.json({ rules: rulesWithCounts });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

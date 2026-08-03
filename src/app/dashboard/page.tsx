@@ -38,6 +38,8 @@ export default function DashboardPage() {
   const [streak, setStreak] = useState<number>(0);
   const [promptIndex, setPromptIndex] = useState(0);
 
+  const [ruleStreak, setRuleStreak] = useState<number>(0);
+
   // Static user data fetched once on mount
   useEffect(() => {
     setPromptIndex(Math.floor(Math.random() * WITTY_PROMPTS.length));
@@ -45,10 +47,12 @@ export default function DashboardPage() {
       fetch('/api/profile').then(r => r.json()).catch(() => ({})),
       fetch('/api/insights/daily').then(r => r.json()).catch(() => ({ insight: '' })),
       fetch('/api/meals/streak').then(r => r.json()).catch(() => ({ streak_days: 0 })),
-    ]).then(([pRes, iRes, sRes]) => {
+      fetch('/api/rules/streak').then(r => r.json()).catch(() => ({ rule_streak: 0 })),
+    ]).then(([pRes, iRes, sRes, rRes]) => {
       setProfile(pRes.profile || null);
       setInsight(iRes.insight || '');
       setStreak(sRes.streak_days || 0);
+      setRuleStreak(rRes.rule_streak || 0);
     });
   }, []);
 
@@ -106,15 +110,32 @@ export default function DashboardPage() {
           <p className="text-xs font-mono text-[var(--muted)] uppercase tracking-widest">{today}</p>
         </div>
         <div className="flex items-center gap-2.5">
-          {/* Streak badge — minimal, inline in header */}
+          {/* Logging Streak badge */}
           {streak > 0 && (
             <div
-              title={`${streak}-day streak`}
-              className="flex flex-col items-center justify-center w-9 h-9 rounded-xl bg-[rgba(244,162,77,0.08)] border border-[rgba(244,162,77,0.25)] shrink-0"
+              title={`${streak}-day meal logging streak`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(244,162,77,0.08)] border border-[rgba(244,162,77,0.25)] shrink-0 select-none"
             >
-              <span className="text-[10px] font-bold text-[var(--accent)] leading-none">{streak}</span>
-              <span className="text-[8px] font-mono text-[var(--accent)] opacity-70 leading-none mt-0.5">day</span>
+              <svg className="w-3.5 h-3.5 text-[var(--accent)]" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 23c-4.97 0-9-4.03-9-9 0-3.53 2.04-6.58 5-8.05v2.24c-1.78 1.13-3 3.12-3 5.81 0 3.87 3.13 7 7 7s7-3.13 7-7c0-2.69-1.22-4.68-3-5.81V5.95c2.96 1.47 5 4.52 5 8.05 0 4.97-4.03 9-9 9z" />
+                <path d="M12 17c-2.21 0-4-1.79-4-4 0-1.5 0.8-2.8 2-3.46v1.73c-0.58 0.44-1 1.12-1 1.73 0 1.66 1.34 3 3 3s3-1.34 3-3c0-0.61-0.42-1.29-1-1.73V9.54c1.2 0.66 2 1.96 2 3.46 0 2.21-1.79 4-4 4z" />
+              </svg>
+              <span className="text-xs font-mono font-bold text-[var(--accent)]">{streak}d Log</span>
             </div>
+          )}
+          {/* Clean Streak badge */}
+          {ruleStreak > 0 && (
+            <Link
+              href="/rules"
+              title={`${ruleStreak}-day Clean Streak (unbroken discipline)`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(91,184,212,0.08)] border border-[rgba(91,184,212,0.3)] shrink-0 hover:scale-105 transition-all select-none"
+            >
+              <svg className="w-3.5 h-3.5 text-[#5BB8D4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="M9 12l2 2 4-4" />
+              </svg>
+              <span className="text-xs font-mono font-bold text-[#5BB8D4]">{ruleStreak}d Clean</span>
+            </Link>
           )}
           {profile?.name && (
             <p className="text-sm text-[var(--text2)] font-mono hidden sm:block">Hey, {profile.name.split(' ')[0]}</p>
