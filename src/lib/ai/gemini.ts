@@ -12,7 +12,7 @@ async function callGroq(prompt: string): Promise<string> {
     body: JSON.stringify({
       model: 'llama-3.3-70b-versatile',
       temperature: 0.2,
-      max_tokens: 2048,
+      max_tokens: 4096,
       messages: [
         { role: 'system', content: 'Nutrition analysis AI. Respond with valid JSON only. No markdown.' },
         { role: 'user', content: prompt },
@@ -26,6 +26,41 @@ async function callGroq(prompt: string): Promise<string> {
   return text;
 }
 
+// ─── JSON extraction helper ───────────────────────────────────────────────────
+// LLMs sometimes wrap JSON in markdown fences, add prose, or truncate.
+// This function finds the FIRST balanced {...} block in the raw response,
+// which is far more robust than a simple regex strip.
+function extractJSON(raw: string): string {
+  // Fast path: already valid JSON
+  const trimmed = raw.trim();
+  try { JSON.parse(trimmed); return trimmed; } catch {}
+
+  // Strip common markdown fences (case-insensitive, with optional language tag)
+  const stripped = trimmed.replace(/^```[\w]*\s*/i, '').replace(/\s*```$/i, '').trim();
+  try { JSON.parse(stripped); return stripped; } catch {}
+
+  // Find the first '{' and walk to its matching '}'
+  const start = stripped.indexOf('{');
+  if (start === -1) throw new Error('No JSON object found in AI response');
+
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = start; i < stripped.length; i++) {
+    const ch = stripped[i];
+    if (escape) { escape = false; continue; }
+    if (ch === '\\' && inString) { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) return stripped.slice(start, i + 1);
+    }
+  }
+  throw new Error('Unbalanced JSON braces in AI response');
+}
+
 async function callGemini(prompt: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (apiKey) {
@@ -35,7 +70,8 @@ async function callGemini(prompt: string): Promise<string> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.2, maxOutputTokens: 2048, responseMimeType: 'application/json' },
+          // 4096 tokens prevents mid-JSON truncation for complex multi-item meals
+          generationConfig: { temperature: 0.2, maxOutputTokens: 4096, responseMimeType: 'application/json' },
         }),
       });
       if (response.ok) {
@@ -137,19 +173,13 @@ Rules:
 - nutrition values must be numbers, not null
 - eating_context inferred from meal description`;
 
-  const raw = await callGemini(prompt);
-
-  try {
-    // Clean any accidental markdown fences
-    const clean = raw.replace(/```json\n?|\n?```/g, '').trim();
+  async function attemptParse(rawResponse: string): Promise<AIMealAnalysis> {
+    const clean = extractJSON(rawResponse);
     const parsed = JSON.parse(clean) as AIMealAnalysis;
-
-    // Validate required fields
     if (!parsed.items || !Array.isArray(parsed.items)) {
-      throw new Error('Invalid AI response structure');
+      throw new Error('Invalid AI response structure: missing items array');
     }
-
-    // Ensure totals are computed correctly (don't trust AI math blindly)
+    // Always recompute totals from items — never trust AI math
     parsed.total_calories = parsed.items.reduce((s, i) => s + (i.calories || 0), 0);
     parsed.total_protein_g = parsed.items.reduce((s, i) => s + (i.protein_g || 0), 0);
     parsed.total_carbs_g = parsed.items.reduce((s, i) => s + (i.carbs_g || 0), 0);
@@ -157,10 +187,23 @@ Rules:
     parsed.total_fiber_g = parsed.items.reduce((s, i) => s + (i.fiber_g || 0), 0);
     parsed.total_sugar_g = parsed.items.reduce((s, i) => s + (i.sugar_g || 0), 0);
     parsed.total_sodium_mg = parsed.items.reduce((s, i) => s + (i.sodium_mg || 0), 0);
-
     return parsed;
+  }
+
+  // First attempt
+  const raw = await callGemini(prompt);
+  try {
+    return await attemptParse(raw);
+  } catch (firstErr) {
+    console.warn('First parse attempt failed, retrying once:', firstErr, '\nRaw:', raw);
+  }
+
+  // One automatic retry — a fresh call often returns valid JSON
+  try {
+    const retryRaw = await callGemini(prompt);
+    return await attemptParse(retryRaw);
   } catch (e) {
-    console.error('Failed Gemini raw response:', raw);
+    console.error('Both parse attempts failed. Last raw response:', raw);
     throw new Error(`Failed to parse meal analysis: ${e}.`);
   }
 }
