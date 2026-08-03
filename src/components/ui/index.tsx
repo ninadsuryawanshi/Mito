@@ -198,6 +198,7 @@ export { useToast, ToastProvider } from './ToastContext';
 export { CalorieTrendChart, DayRingsChart, WeekBarChart, MonthLineChart } from './MiniChart';
 export { PWAPrompt } from './PWAPrompt';
 export { LogoMark } from './LogoMark';
+export { AnimatedTypewriterPrompt, VEG_MEAL_PROMPTS } from './AnimatedTypewriterPrompt';
 
 
 

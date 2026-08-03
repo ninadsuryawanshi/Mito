@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { AIMealAnalysis } from '@/types';
-import { Button, Textarea, NutrientBox, MonoLabel, Spinner } from '@/components/ui';
+import { Button, Textarea, NutrientBox, MonoLabel, Spinner, AnimatedTypewriterPrompt } from '@/components/ui';
 import { useToast } from '@/components/ui/ToastContext';
 
 type Step = 'input' | 'analyzing' | 'review' | 'saving' | 'done';
@@ -160,9 +160,13 @@ function LogContent() {
       setTimeout(() => {
         textareaRef.current?.focus();
         toggleListening();
-      }, 400);
-    } else if (autoFocus === 'true') {
-      setTimeout(() => textareaRef.current?.focus(), 250);
+      }, 300);
+    } else {
+      // Focus immediately + delayed to catch mobile DOM focus transition
+      textareaRef.current?.focus();
+      const t1 = setTimeout(() => textareaRef.current?.focus(), 100);
+      const t2 = setTimeout(() => textareaRef.current?.focus(), 300);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
     }
   }, [searchParams]);
 
@@ -376,10 +380,18 @@ function LogContent() {
 
           {/* Description */}
           <div>
-            <MonoLabel className="mb-2 block">What did you eat? (More detail = Better Result)</MonoLabel>
+            <div className="flex items-center justify-between mb-2">
+              <MonoLabel>What did you eat?</MonoLabel>
+              {!description && (
+                <div className="hidden sm:block text-xs font-mono">
+                  <AnimatedTypewriterPrompt prefix="Try:" />
+                </div>
+              )}
+            </div>
             <div className={`moving-gradient-border-wrapper relative ${isListening ? 'recording' : ''}`}>
               <textarea
                 ref={textareaRef}
+                autoFocus
                 placeholder={
                   isTranscribing
                     ? "Transcribing voice note with AI Whisper..."

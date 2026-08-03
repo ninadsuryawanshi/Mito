@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { format, startOfWeek, addDays, startOfMonth, getDaysInMonth } from 'date-fns';
 import { MealLog, TimelineView, DashboardStats, MOOD_MAP } from '@/types';
 import { computeStats } from '@/lib/services/mealService';
-import { MonoLabel, Badge, DayRingsChart, WeekBarChart, MonthLineChart, LogoMark } from '@/components/ui';
+import { MonoLabel, Badge, DayRingsChart, WeekBarChart, MonthLineChart, LogoMark, AnimatedTypewriterPrompt } from '@/components/ui';
 
 const VIEWS: TimelineView[] = ['day', 'week', 'month'];
 
@@ -145,35 +145,38 @@ export default function DashboardPage() {
             aria-label="Settings"
             className="md:hidden w-9 h-9 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-all active:scale-95">
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
             </svg>
           </Link>
         </div>
       </div>
 
       {/* Quick-Log Prompt Box with glowing moving gradient border */}
-      <div className="moving-gradient-border-wrapper mb-5 animate-fade-up">
-        <div className="bg-[#12100e] rounded-[1.2rem] p-4 flex flex-col gap-3">
+      <div className="moving-gradient-border-wrapper mb-7 animate-fade-up">
+        <div className="bg-[#12100e] rounded-[1.6rem] p-7 sm:p-8 flex flex-col gap-5">
           {/* Main prompt input preview -> opens /log with autoFocus */}
-          <Link href="/log?autoFocus=true" className="flex items-center justify-between group">
-            <span className="text-sm font-medium text-[var(--text)] tracking-wide group-hover:text-[var(--accent)] transition-colors">
-              {profile?.name
-                ? `Hey ${profile.name.split(' ')[0]}, ${WITTY_PROMPTS[promptIndex]}`
-                : `Hey, ${WITTY_PROMPTS[promptIndex]}`}
-            </span>
-            <div className="w-8 h-8 rounded-full bg-[var(--accent)] text-[#0a0908] flex items-center justify-center font-bold text-sm shadow-[0_0_15px_var(--accent-glow)] group-hover:scale-105 transition-transform">
+          <Link href="/log?autoFocus=true" className="flex items-center justify-between group py-1 gap-4">
+            <div className="flex flex-col gap-1.5 flex-1">
+              <h2 className="text-base sm:text-lg font-bold text-[var(--text)] group-hover:text-[var(--accent)] transition-colors" style={{ fontFamily: 'Syne, serif' }}>
+                {profile?.name
+                  ? `Hey ${profile.name.split(' ')[0]}, ${WITTY_PROMPTS[promptIndex]}`
+                  : `Hey, ${WITTY_PROMPTS[promptIndex]}`}
+              </h2>
+              <AnimatedTypewriterPrompt className="text-xs text-[var(--text2)] font-mono" />
+            </div>
+            <div className="w-11 h-11 rounded-full bg-[var(--accent)] text-[#0a0908] flex items-center justify-center font-bold text-lg shadow-[0_0_22px_var(--accent-glow)] group-hover:scale-105 transition-transform shrink-0">
               ➔
             </div>
           </Link>
 
           {/* Quick action chips matching reference design with direct tab deep-linking */}
-          <div className="flex items-center gap-2 pt-0.5">
+          <div className="flex items-center gap-2.5 pt-2 border-t border-[#1f1b16]">
             <Link href="/log?mode=photo"
-              className="text-[10px] font-mono text-[var(--text2)] bg-[var(--surface2)] border border-[var(--border)] px-2.5 py-1 rounded-lg flex items-center gap-1 hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors">
+              className="text-xs font-mono text-[var(--text2)] bg-[var(--surface2)] border border-[var(--border)] px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors">
               📷 Photo log
             </Link>
             <Link href="/log?mode=voice"
-              className="text-[10px] font-mono text-[var(--text2)] bg-[var(--surface2)] border border-[var(--border)] px-2.5 py-1 rounded-lg flex items-center gap-1 hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors">
+              className="text-xs font-mono text-[var(--text2)] bg-[var(--surface2)] border border-[var(--border)] px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors">
               🎙️ Voice log
             </Link>
           </div>
@@ -204,7 +207,7 @@ export default function DashboardPage() {
               </div>
             ))}
             <div className="grid grid-cols-4 gap-2">
-              {[0,1,2,3].map(i => (
+              {[0, 1, 2, 3].map(i => (
                 <div key={i} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-2.5">
                   <div className="skeleton h-5 w-8 mx-auto mb-2" />
                   <div className="skeleton h-2 w-6 mx-auto" />
@@ -215,7 +218,7 @@ export default function DashboardPage() {
           {/* Right skeleton */}
           <div className="lg:col-span-2 flex flex-col gap-3 mt-4 lg:mt-0">
             <div className="skeleton h-3 w-24 mb-1" />
-            {[0,1,2].map(i => (
+            {[0, 1, 2].map(i => (
               <div key={i} className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4">
                 <div className="skeleton h-4 w-48 mb-2" />
                 <div className="skeleton h-3 w-32 mb-3" />
@@ -238,7 +241,7 @@ export default function DashboardPage() {
             {insight && (
               <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-3 animate-fade-up delay-2">
                 <MonoLabel className="mb-1 block">Today&apos;s observation</MonoLabel>
-                <p className="text-sm text-[var(--text)] italic">&quot;{insight}&quot;</p>
+                <p className="text-sm text-[var(--text)] italic">{insight}</p>
               </div>
             )}
 
