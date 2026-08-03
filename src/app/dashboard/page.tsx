@@ -1,10 +1,10 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { format, subDays } from 'date-fns';
+import { format, startOfWeek, addDays, startOfMonth, getDaysInMonth } from 'date-fns';
 import { MealLog, TimelineView, DashboardStats, MOOD_MAP } from '@/types';
 import { computeStats } from '@/lib/services/mealService';
-import { MonoLabel, Badge, CalorieTrendChart, LogoMark } from '@/components/ui';
+import { MonoLabel, Badge, DayRingsChart, WeekBarChart, MonthLineChart, LogoMark } from '@/components/ui';
 
 const VIEWS: TimelineView[] = ['day', 'week', 'month'];
 
@@ -38,34 +38,58 @@ export default function DashboardPage() {
   const [streak, setStreak] = useState<number>(0);
   const [promptIndex, setPromptIndex] = useState(0);
 
+  // Static user data fetched once on mount
   useEffect(() => {
     setPromptIndex(Math.floor(Math.random() * WITTY_PROMPTS.length));
+    Promise.all([
+      fetch('/api/profile').then(r => r.json()).catch(() => ({})),
+      fetch('/api/insights/daily').then(r => r.json()).catch(() => ({ insight: '' })),
+      fetch('/api/meals/streak').then(r => r.json()).catch(() => ({ streak_days: 0 })),
+    ]).then(([pRes, iRes, sRes]) => {
+      setProfile(pRes.profile || null);
+      setInsight(iRes.insight || '');
+      setStreak(sRes.streak_days || 0);
+    });
   }, []);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    const [mealsRes, profileRes, insightRes, tracesRes, streakRes] = await Promise.all([
-      fetch(`/api/meals?view=${view}`),
-      fetch('/api/profile'),
-      fetch('/api/insights/daily'),
-      fetch(`/api/rules/traces?view=${view}`),
-      fetch('/api/meals/streak'),
-    ]);
-    const { meals: m } = await mealsRes.json();
-    const { profile: p } = await profileRes.json();
-    const { insight: i } = await insightRes.json().catch(() => ({ insight: '' }));
-    const { traces: t } = await tracesRes.json().catch(() => ({ traces: [] }));
-    const { streak_days: s } = await streakRes.json().catch(() => ({ streak_days: 0 }));
-    setMeals(m || []);
-    setStats(computeStats(m || []));
-    setProfile(p);
-    setInsight(i || '');
-    setRuleTraces(t || []);
-    setStreak(s || 0);
-    setLoading(false);
+  const [tabLoading, setTabLoading] = useState(false);
+
+  const fetchData = useCallback(async (isInitial = false) => {
+    if (isInitial) setLoading(true);
+    else setTabLoading(true);
+
+    try {
+      const [mealsRes, tracesRes] = await Promise.all([
+        fetch(`/api/meals?view=${view}`),
+        fetch(`/api/rules/traces?view=${view}`),
+      ]);
+      const { meals: m } = await mealsRes.json();
+      const { traces: t } = await tracesRes.json().catch(() => ({ traces: [] }));
+      setMeals(m || []);
+      setStats(computeStats(m || []));
+      setRuleTraces(t || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+      setTabLoading(false);
+    }
   }, [view]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  // Initial load
+  useEffect(() => {
+    fetchData(true);
+  }, []); // Run once on mount
+
+  // View switch
+  const initialMount = useRef(true);
+  useEffect(() => {
+    if (initialMount.current) {
+      initialMount.current = false;
+      return;
+    }
+    fetchData(false);
+  }, [view, fetchData]);
 
   const today = format(new Date(), 'EEEE, d MMM');
   const viewMultiplier = view === 'day' ? 1 : view === 'week' ? 7 : 30;
@@ -222,19 +246,50 @@ export default function DashboardPage() {
             {stats && stats.total_meals > 0 ? (
               <div className="animate-fade-up delay-2 flex flex-col gap-3">
 
-                {/* Calorie Trend Chart */}
-                {(() => {
+                {/* ── Chart — view-aware ── */}
+                {view === 'day' && (
+                  <DayRingsChart
+                    calories={Math.round(stats.total_calories)}
+                    calorieGoal={profile?.recommended_calories || 0}
+                    protein={Math.round(stats.total_protein_g)}
+                    proteinGoal={profile?.recommended_protein_g || 0}
+                  />
+                )}
+
+                {view === 'week' && (() => {
                   const today = new Date();
+                  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
                   const chartData = Array.from({ length: 7 }, (_, idx) => {
-                    const d = subDays(today, 6 - idx);
+                    const d = addDays(weekStart, idx);
                     const dayStr = format(d, 'yyyy-MM-dd');
-                    const dayLabel = idx === 6 ? 'Today' : format(d, 'EEE');
-                    const cals = meals
-                      .filter(m => format(new Date(m.logged_at), 'yyyy-MM-dd') === dayStr)
-                      .reduce((sum, m) => sum + (m.total_calories || 0), 0);
-                    return { dayLabel, calories: Math.round(cals) };
+                    const isToday = format(d, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
+                    const dayLabel = isToday ? 'Today' : format(d, 'EEE');
+                    const dayMeals = meals.filter(m => format(new Date(m.logged_at), 'yyyy-MM-dd') === dayStr);
+                    return {
+                      dayLabel,
+                      calories: Math.round(dayMeals.reduce((s, m) => s + (m.total_calories || 0), 0)),
+                      protein: Math.round(dayMeals.reduce((s, m) => s + (m.total_protein_g || 0), 0)),
+                    };
                   });
-                  return <CalorieTrendChart data={chartData} />;
+                  return <WeekBarChart data={chartData} />;
+                })()}
+
+                {view === 'month' && (() => {
+                  const today = new Date();
+                  const monthStart = startOfMonth(today);
+                  const totalDays = getDaysInMonth(today);
+                  const chartData = Array.from({ length: totalDays }, (_, idx) => {
+                    const d = addDays(monthStart, idx);
+                    const dayStr = format(d, 'yyyy-MM-dd');
+                    const dayLabel = format(d, 'd MMM');
+                    const dayMeals = meals.filter(m => format(new Date(m.logged_at), 'yyyy-MM-dd') === dayStr);
+                    return {
+                      dayLabel,
+                      calories: Math.round(dayMeals.reduce((s, m) => s + (m.total_calories || 0), 0)),
+                      protein: Math.round(dayMeals.reduce((s, m) => s + (m.total_protein_g || 0), 0)),
+                    };
+                  });
+                  return <MonthLineChart data={chartData} />;
                 })()}
 
                 {/* Calories */}
@@ -329,7 +384,7 @@ export default function DashboardPage() {
                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-24 bg-[var(--accent)] opacity-[0.04] blur-3xl rounded-full pointer-events-none" />
               </div>
             ) : (
-              meals.map((meal, i) => <MealCard key={meal.log_id} meal={meal} index={i} onDelete={fetchData} />)
+              meals.map((meal, i) => <MealCard key={meal.log_id} meal={meal} index={i} onDelete={() => fetchData(false)} />)
             )}
           </div>
         </div>

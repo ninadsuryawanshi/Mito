@@ -195,7 +195,7 @@ export function NutrientBox({
 }
 
 export { useToast, ToastProvider } from './ToastContext';
-export { CalorieTrendChart } from './MiniChart';
+export { CalorieTrendChart, DayRingsChart, WeekBarChart, MonthLineChart } from './MiniChart';
 export { PWAPrompt } from './PWAPrompt';
 export { LogoMark } from './LogoMark';
 
