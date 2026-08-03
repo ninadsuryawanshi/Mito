@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createServerSupabaseClient } from '@/lib/db/server';
-import { LogoMark } from '@/components/ui';
+import { LogoMark, AnimatedTypewriterPrompt } from '@/components/ui';
 
 export default async function RootPage() {
   const supabase = await createServerSupabaseClient();
@@ -52,7 +52,7 @@ export default async function RootPage() {
         {/* Subtitle & Core Philosophy */}
         <div className="max-w-2xl mb-12 animate-fade-up delay-1">
           <p className="text-base sm:text-lg text-[var(--muted)] leading-relaxed font-mono">
-            Mito is a personal food mirror — built to reflect, not instruct. Log meals casually in plain language or voice dictation, track real nutrition trends, and stay in total clarity.
+            Mito is a personal food mirror - built to reflect, not instruct. Log meals casually in plain language, voice dictation or a simple photo, track real nutrition trends, and stay in total clarity.
           </p>
           <div className="flex items-center justify-center gap-3 mt-5 text-xs font-mono uppercase tracking-widest text-[var(--muted2)]">
             <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
@@ -66,11 +66,14 @@ export default async function RootPage() {
           <div className="moving-gradient-border-wrapper shadow-[0_0_50px_rgba(244,162,77,0.25)]">
             <Link
               href="/signup"
-              className="w-full bg-[#12100e] rounded-[1.2rem] p-5 sm:p-6 flex items-center justify-between text-left group transition-all"
+              className="w-full bg-[#12100e] rounded-[1.6rem] p-6 sm:p-8 flex items-center justify-between text-left group transition-all gap-4"
             >
-              <span className="text-base sm:text-lg font-mono text-[var(--muted)] group-hover:text-[var(--text)] transition-colors pr-4">
-                Hey there, what did you eat today?
-              </span>
+              <div className="flex flex-col gap-1.5 flex-1">
+                <h2 className="text-base sm:text-xl font-bold text-[var(--text)] group-hover:text-[var(--accent)] transition-colors" style={{ fontFamily: 'Syne, serif' }}>
+                  Hey there, what fueled you today?
+                </h2>
+                <AnimatedTypewriterPrompt className="text-xs sm:text-sm text-[var(--text2)] font-mono" />
+              </div>
               <div className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--accent)] text-[#0a0908] font-mono text-xs sm:text-sm font-bold shadow-[0_0_20px_var(--accent-glow)] group-hover:scale-105 transition-transform shrink-0">
                 <span>Try Mito</span>
                 <span>→</span>

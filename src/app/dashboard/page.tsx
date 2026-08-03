@@ -103,18 +103,16 @@ export default function DashboardPage() {
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6 animate-fade-up">
-        <div>
-          <div className="mb-1">
-            <LogoMark showText size={28} />
-          </div>
-          <p className="text-xs font-mono text-[var(--muted)] uppercase tracking-widest">{today}</p>
+        <div className="flex flex-col justify-center">
+          <LogoMark showText size={28} />
+          <p className="text-[11px] font-mono text-[var(--muted)] uppercase tracking-wider mt-1">{today}</p>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           {/* Logging Streak badge */}
           {streak > 0 && (
             <div
               title={`${streak}-day meal logging streak`}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(244,162,77,0.08)] border border-[rgba(244,162,77,0.25)] shrink-0 select-none"
+              className="h-9 flex items-center gap-1.5 px-3 rounded-xl bg-[rgba(244,162,77,0.08)] border border-[rgba(244,162,77,0.25)] shrink-0 select-none"
             >
               <svg className="w-3.5 h-3.5 text-[var(--accent)]" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 23c-4.97 0-9-4.03-9-9 0-3.53 2.04-6.58 5-8.05v2.24c-1.78 1.13-3 3.12-3 5.81 0 3.87 3.13 7 7 7s7-3.13 7-7c0-2.69-1.22-4.68-3-5.81V5.95c2.96 1.47 5 4.52 5 8.05 0 4.97-4.03 9-9 9z" />
@@ -128,7 +126,7 @@ export default function DashboardPage() {
             <Link
               href="/rules"
               title={`${ruleStreak}-day Clean Streak (unbroken discipline)`}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(91,184,212,0.08)] border border-[rgba(91,184,212,0.3)] shrink-0 hover:scale-105 transition-all select-none"
+              className="h-9 flex items-center gap-1.5 px-3 rounded-xl bg-[rgba(91,184,212,0.08)] border border-[rgba(91,184,212,0.3)] shrink-0 hover:scale-105 transition-all select-none"
             >
               <svg className="w-3.5 h-3.5 text-[#5BB8D4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -468,10 +466,19 @@ function GoalCard({ label, value, unit, goal, color, mode, sub, showMacroBar, st
               <div className="macro-bar-carbs" style={{ flex: stats.total_carbs_g * 4 / total }} />
               <div className="macro-bar-fat" style={{ flex: stats.total_fat_g * 9 / total }} />
             </div>
-            <div className="flex gap-3 text-[10px] font-mono">
-              <span className="text-[var(--blue)]">P {Math.round(stats.total_protein_g)}g</span>
-              <span className="text-[var(--accent)]">C {Math.round(stats.total_carbs_g)}g</span>
-              <span style={{ color: '#e8885a' }}>F {Math.round(stats.total_fat_g)}g</span>
+            <div className="flex flex-wrap gap-2 text-[11px] font-mono mt-2">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[rgba(92,156,224,0.08)] text-[var(--blue)] border border-[rgba(92,156,224,0.2)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--blue)] shrink-0" />
+                Protein {Math.round(stats.total_protein_g)}g
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[rgba(244,162,77,0.08)] text-[var(--accent)] border border-[rgba(244,162,77,0.2)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
+                Carbs {Math.round(stats.total_carbs_g)}g
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[rgba(232,136,90,0.08)] text-[#e8885a] border border-[rgba(232,136,90,0.2)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#e8885a] shrink-0" />
+                Fats {Math.round(stats.total_fat_g)}g
+              </span>
             </div>
           </>
         );
