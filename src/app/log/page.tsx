@@ -9,8 +9,17 @@ import { useToast } from '@/components/ui/ToastContext';
 type Step = 'input' | 'analyzing' | 'review' | 'saving' | 'done';
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
 
-const ANALYZE_STAGES = [
+const ANALYZE_STAGES_TEXT = [
   'Decomposing meal items and portions',
+  'Calculating calories, protein and macros',
+  'Checking against your food rules',
+  'Finalizing nutritional breakdown',
+];
+
+const ANALYZE_STAGES_PHOTO = [
+  'Capturing your food & scanning visual details...',
+  'Running a vibe check on your plate...',
+  'Decomposing meal items and portion sizes',
   'Calculating calories, protein and macros',
   'Checking against your food rules',
   'Finalizing nutritional breakdown',
@@ -76,16 +85,18 @@ function LogContent() {
 
   const [analyzingStage, setAnalyzingStage] = useState(0);
 
+  const currentStages = photoBase64 ? ANALYZE_STAGES_PHOTO : ANALYZE_STAGES_TEXT;
+
   useEffect(() => {
     if (step !== 'analyzing') {
       setAnalyzingStage(0);
       return;
     }
     const interval = setInterval(() => {
-      setAnalyzingStage(prev => (prev < ANALYZE_STAGES.length - 1 ? prev + 1 : prev));
+      setAnalyzingStage(prev => (prev < currentStages.length - 1 ? prev + 1 : prev));
     }, 1800);
     return () => clearInterval(interval);
-  }, [step]);
+  }, [step, currentStages.length]);
 
   useEffect(() => {
     fetch('/api/meals?recent=true')
@@ -351,28 +362,39 @@ function LogContent() {
 
   if (step === 'analyzing') return (
     <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6 px-6 max-w-md mx-auto animate-fade-up">
-      {/* Sleek Minimalist Concentric Glowing Orb */}
-      <div className="relative flex items-center justify-center w-24 h-24">
-        <div className="absolute inset-0 rounded-full bg-[rgba(244,162,77,0.15)] animate-ping opacity-30" />
-        <div className="absolute inset-2 rounded-full bg-[rgba(244,162,77,0.2)] animate-pulse" />
-        <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-[#F4A24D] to-[#d47b25] shadow-[0_0_30px_rgba(244,162,77,0.4)] flex items-center justify-center">
-          <div className="w-4 h-4 rounded-full bg-[#0a0908] animate-pulse" />
+      {/* Photo Preview Thumbnail if photo used */}
+      {photoPreview ? (
+        <div className="relative w-28 h-28 rounded-2xl overflow-hidden border-2 border-[var(--accent)] shadow-[0_0_30px_rgba(244,162,77,0.35)] animate-pulse">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={photoPreview} alt="analyzing photo" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0908]/80 via-transparent to-transparent flex items-end justify-center pb-2">
+            <span className="text-[10px] font-mono font-bold text-[var(--accent)] uppercase tracking-wider">📷 Scanning</span>
+          </div>
         </div>
-      </div>
+      ) : (
+        /* Sleek Minimalist Concentric Glowing Orb for text logs */
+        <div className="relative flex items-center justify-center w-24 h-24">
+          <div className="absolute inset-0 rounded-full bg-[rgba(244,162,77,0.15)] animate-ping opacity-30" />
+          <div className="absolute inset-2 rounded-full bg-[rgba(244,162,77,0.2)] animate-pulse" />
+          <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-[#F4A24D] to-[#d47b25] shadow-[0_0_30px_rgba(244,162,77,0.4)] flex items-center justify-center">
+            <div className="w-4 h-4 rounded-full bg-[#0a0908] animate-pulse" />
+          </div>
+        </div>
+      )}
 
       {/* Dynamic Step Text */}
       <div className="text-center flex flex-col items-center gap-2">
         <p className="font-mono text-xs text-[var(--accent)] uppercase tracking-widest font-semibold">
-          Step {analyzingStage + 1} of {ANALYZE_STAGES.length}
+          Step {analyzingStage + 1} of {currentStages.length}
         </p>
         <p key={analyzingStage} className="text-base font-medium text-[var(--text)] transition-all animate-fade-up" style={{ fontFamily: 'Syne, serif' }}>
-          {ANALYZE_STAGES[analyzingStage]}
+          {currentStages[analyzingStage]}
         </p>
       </div>
 
       {/* Minimalist Segmented Progress Bar */}
       <div className="w-full max-w-xs flex gap-1.5 mt-1">
-        {ANALYZE_STAGES.map((_, i) => (
+        {currentStages.map((_, i) => (
           <div
             key={i}
             className={`h-1 flex-1 rounded-full transition-all duration-500 ${

@@ -15,16 +15,41 @@ const WHO_LIMITS = {
 };
 
 const WITTY_PROMPTS = [
-  "what fueled you today?",
-  "feed the mirror...",
-  "what's on your plate?",
+  "what chaos did you call lunch today?",
+  "spill the tea... or the calories.",
+  "what did you eat? no judgment (mostly).",
+  "confess your latest snack...",
+  "was it fuel or pure temptation?",
+  "tell us about that sneaky late night bite.",
+  "what fueled that big brain of yours today?",
+  "log it before your memory edits the portion size...",
+  "did you eat a real meal or just vibes?",
+  "what culinary masterpiece (or disaster) was it?",
+  "spill the beans... literally or metaphorically.",
+  "what did you just feed your body?",
+  "what culinary adventure did you just survive?",
+  "is that post-meal food coma hitting yet?",
+  "honest answers only: what was on the plate?",
+  "did you conquer dinner or did dinner conquer you?",
+  "what unexpected snack made a guest appearance?",
+  "time to account for those delicious decisions.",
+  "what fueled your engine today?",
+  "any high-protein victories to report?",
+  "drop the food log and step away from the pantry.",
+  "what did you feast on?",
+  "what's the total damage from your last meal?",
+  "give your macros something fresh to calculate.",
+  "what did you eat? your dietitian wants to know.",
+  "what plate just got wiped clean?",
+  "what's on your plate today?",
   "dish the details...",
-  "spill the beans (literally)...",
   "what did you eat today?",
   "track your latest fuel...",
   "what's cooking?",
   "log your last bite...",
-  "give the mirror something to reflect...",
+  "did you eat a salad or just stare at one?",
+  "was that snack planned or a spontaneous plot twist?",
+  "what delicious crime was committed in the kitchen?",
 ];
 
 export default function DashboardPage() {
@@ -352,19 +377,21 @@ export default function DashboardPage() {
                 {/* Ambient glow */}
                 <div className="absolute inset-0 bg-[var(--accent)] opacity-[0.025] blur-3xl pointer-events-none rounded-3xl" />
 
-                {/* Icon */}
-                <div className="w-16 h-16 rounded-2xl bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center text-3xl select-none animate-float shrink-0">
-                  🪞
+                {/* Professional Macro Ring SVG Icon */}
+                <div className="w-16 h-16 rounded-2xl bg-[var(--surface2)] border border-[rgba(244,162,77,0.25)] flex items-center justify-center select-none animate-float shrink-0 shadow-[0_0_20px_rgba(244,162,77,0.08)]">
+                  <svg className="w-7 h-7 text-[var(--accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="9" strokeDasharray="4 2" />
+                    <path d="M12 7v10M7 12h10" />
+                  </svg>
                 </div>
 
                 {/* Text */}
                 <div className="relative z-10">
                   <p className="text-base font-bold text-[var(--text)] mb-2" style={{ fontFamily: 'Syne, serif' }}>
-                    Mirror&apos;s empty.
+                    No stats to display
                   </p>
                   <p className="text-xs font-mono text-[var(--muted)] leading-relaxed max-w-[220px]">
-                    Your nutrition reflects what you eat.<br />
-                    Nothing logged yet — feed the mirror.
+                    Your daily calories, macros, and nutrients will appear here as soon as you log your first meal.
                   </p>
                 </div>
 
@@ -399,7 +426,7 @@ export default function DashboardPage() {
                     Nothing logged {view === 'day' ? 'today' : view === 'week' ? 'this week' : 'this month'}
                   </p>
                   <p className="text-xs text-[var(--muted)] mt-2 font-mono max-w-xs">
-                    Your nutrition mirror is empty — tap <span className="text-[var(--accent)] font-bold">+</span> to log your first meal
+                    Your meal log is empty — tap <span className="text-[var(--accent)] font-bold">+</span> to log your first meal
                   </p>
                 </div>
                 {/* Decorative blurred glow */}
