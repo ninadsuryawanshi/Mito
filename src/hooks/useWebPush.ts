@@ -38,10 +38,18 @@ export function useWebPush() {
       try {
         const reg = await getSWRegistration();
         const sub = await reg.pushManager.getSubscription();
+        const userOptedOut = localStorage.getItem('mito_push_opt_out') === 'true';
+
+        if (sub && userOptedOut) {
+          // User explicitly opted out in settings
+          setIsSubscribed(false);
+          return;
+        }
+
         setIsSubscribed(!!sub);
 
-        // Auto-subscribe by default if browser permission is already granted and no active sub exists
-        if (perm === 'granted' && !sub) {
+        // Auto-subscribe by default ONLY IF browser permission is granted AND user has NOT explicitly opted out
+        if (perm === 'granted' && !sub && !userOptedOut) {
           const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
           if (publicVapidKey) {
             const newSub = await reg.pushManager.subscribe({
@@ -76,6 +84,11 @@ export function useWebPush() {
     setError(null);
 
     try {
+      // Clear opt-out preference when user explicitly subscribes
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('mito_push_opt_out');
+      }
+
       // 1. Request permission
       const result = await Notification.requestPermission();
       setPermission(result);
@@ -84,7 +97,7 @@ export function useWebPush() {
         throw new Error('Notification permission was denied. Please check your browser site settings.');
       }
 
-      // 2. Get SW registration directly (does not hang)
+      // 2. Get SW registration directly
       const reg = await getSWRegistration();
 
       const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -136,6 +149,11 @@ export function useWebPush() {
     setLoading(true);
 
     try {
+      // Record explicit opt-out preference
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mito_push_opt_out', 'true');
+      }
+
       const reg = await getSWRegistration();
       const sub = await reg.pushManager.getSubscription();
 

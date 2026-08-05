@@ -136,12 +136,12 @@ export default function DashboardPage() {
           <LogoMark showText size={28} />
           <p className="text-[11px] font-mono text-[var(--muted)] uppercase tracking-wider mt-1">{today}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 max-w-[65%] sm:max-w-none overflow-x-auto no-scrollbar shrink-0 justify-end">
           {/* Logging Streak badge */}
           {streak > 0 && (
             <div
               title={`${streak}-day meal logging streak`}
-              className="h-9 flex items-center gap-1.5 px-3 rounded-xl bg-[rgba(244,162,77,0.08)] border border-[rgba(244,162,77,0.25)] shrink-0 select-none"
+              className="h-9 flex items-center gap-1.5 px-2.5 sm:px-3 rounded-xl bg-[rgba(244,162,77,0.08)] border border-[rgba(244,162,77,0.25)] shrink-0 select-none whitespace-nowrap"
             >
               <svg className="w-3.5 h-3.5 text-[var(--accent)]" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 23c-4.97 0-9-4.03-9-9 0-3.53 2.04-6.58 5-8.05v2.24c-1.78 1.13-3 3.12-3 5.81 0 3.87 3.13 7 7 7s7-3.13 7-7c0-2.69-1.22-4.68-3-5.81V5.95c2.96 1.47 5 4.52 5 8.05 0 4.97-4.03 9-9 9z" />
@@ -155,7 +155,7 @@ export default function DashboardPage() {
             <Link
               href="/rules"
               title={`${ruleStreak}-day Clean Streak (unbroken discipline)`}
-              className="h-9 flex items-center gap-1.5 px-3 rounded-xl bg-[rgba(91,184,212,0.08)] border border-[rgba(91,184,212,0.3)] shrink-0 hover:scale-105 transition-all select-none"
+              className="h-9 flex items-center gap-1.5 px-2.5 sm:px-3 rounded-xl bg-[rgba(91,184,212,0.08)] border border-[rgba(91,184,212,0.3)] shrink-0 hover:scale-105 transition-all select-none whitespace-nowrap"
             >
               <svg className="w-3.5 h-3.5 text-[#5BB8D4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -164,27 +164,6 @@ export default function DashboardPage() {
               <span className="text-xs font-mono font-bold text-[#5BB8D4]">{ruleStreak}d Clean</span>
             </Link>
           )}
-          {/* Smart Push Notification Bell */}
-          <button
-            onClick={async () => {
-              if (!isSubscribed) {
-                const ok = await subscribe();
-                if (ok) toast('Push notifications enabled! 🔔', 'success');
-                else toast('Could not enable notifications. Check browser permissions.', 'error');
-              }
-            }}
-            disabled={pushLoading}
-            title={isSubscribed ? 'Smart Notifications Active' : 'Click to enable smart meal & streak alerts'}
-            className={`h-9 px-3 rounded-xl border flex items-center gap-1.5 transition-all text-xs font-mono select-none ${
-              isSubscribed
-                ? 'bg-[rgba(92,184,138,0.08)] border-[rgba(92,184,138,0.3)] text-[var(--green)]'
-                : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
-            }`}
-          >
-            <span className="text-sm">🔔</span>
-            <span className="hidden sm:inline">{isSubscribed ? 'Alerts On' : 'Enable Alerts'}</span>
-          </button>
-
           {profile?.name && (
             <p className="text-sm text-[var(--text2)] font-mono hidden sm:block">Hey, {profile.name.split(' ')[0]}</p>
           )}
@@ -198,6 +177,32 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* Smart Push Notification Banner — rendered ONLY when unsubscribed */}
+      {!isSubscribed && (
+        <div className="mb-6 p-4 rounded-2xl bg-[rgba(244,162,77,0.06)] border border-[rgba(244,162,77,0.25)] flex items-center justify-between gap-3 animate-fade-up">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[rgba(244,162,77,0.12)] text-[var(--accent)] flex items-center justify-center text-lg shrink-0">
+              🔔
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[var(--text)] font-mono">Enable Smart Push Notifications</p>
+              <p className="text-[11px] text-[var(--muted)] font-mono">Witty meal reminders & streak alerts</p>
+            </div>
+          </div>
+          <button
+            onClick={async () => {
+              const ok = await subscribe();
+              if (ok) toast('Push notifications enabled! 🔔', 'success');
+              else toast('Could not enable notifications. Check browser permissions.', 'error');
+            }}
+            disabled={pushLoading}
+            className="px-3.5 py-1.5 rounded-xl bg-[var(--accent)] text-[#0a0908] font-mono text-xs font-bold shrink-0 hover:scale-105 transition-transform"
+          >
+            Enable
+          </button>
+        </div>
+      )}
 
       {/* Quick-Log Prompt Box with glowing moving gradient border */}
       <div className="moving-gradient-border-wrapper mb-7 animate-fade-up">
