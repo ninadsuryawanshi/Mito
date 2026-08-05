@@ -5,6 +5,7 @@ import { createClient } from '@/lib/db/client';
 import { Button, Input, MonoLabel } from '@/components/ui';
 import { useToast } from '@/components/ui/ToastContext';
 import { computeWHORecommendations } from '@/lib/ai/gemini';
+import { useWebPush } from '@/hooks/useWebPush';
 
 const ACTIVITY_OPTIONS = [
   { value: 'sedentary', label: 'Sedentary', sub: 'Little/no exercise' },
@@ -17,6 +18,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const { toast } = useToast();
+  const { isSupported: pushSupported, isSubscribed, loading: pushLoading, error: pushError, subscribe, unsubscribe, sendTestNotification } = useWebPush();
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'share' | 'export'>('profile');
   const [viewers, setViewers] = useState<any[]>([]);
@@ -223,6 +225,50 @@ export default function SettingsPage() {
                 className={`w-11 h-6 rounded-full transition-all ${profile.weekly_digest_email ? 'bg-[var(--accent)]' : 'bg-[var(--muted2)]'}`}>
                 <div className={`w-5 h-5 rounded-full bg-white transition-transform mx-0.5 ${profile.weekly_digest_email ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
+            </div>
+
+            <div className="border-t border-[var(--border)] pt-4 mt-1 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--text)] font-medium">Smart Push Notifications</p>
+                  <p className="text-xs font-mono text-[var(--muted)]">Witty meal reminders & streak alerts</p>
+                </div>
+                <button
+                  disabled={pushLoading}
+                  onClick={async () => {
+                    if (isSubscribed) {
+                      await unsubscribe();
+                      toast('Notifications disabled', 'info');
+                    } else {
+                      const ok = await subscribe();
+                      if (ok) {
+                        toast('Push notifications enabled! 🔔', 'success');
+                      } else {
+                        toast(pushError || 'Could not enable notifications. Check browser permissions.', 'error');
+                      }
+                    }
+                  }}
+                  className={`w-11 h-6 rounded-full transition-all ${isSubscribed ? 'bg-[var(--accent)]' : 'bg-[var(--muted2)]'} disabled:opacity-50`}
+                >
+                  <div className={`w-5 h-5 rounded-full bg-white transition-transform mx-0.5 ${isSubscribed ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+              </div>
+
+              {isSubscribed && (
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[10px] font-mono text-[var(--accent)]">✓ Subscribed on this device</span>
+                  <button
+                    onClick={async () => {
+                      const res = await sendTestNotification();
+                      if (res.success) toast('Witty push notification sent! check your screen', 'success');
+                      else toast(res.message || res.error || 'Failed to send test push', 'error');
+                    }}
+                    className="text-[11px] font-mono text-[var(--accent)] hover:underline border border-[rgba(244,162,77,0.3)] px-2.5 py-1 rounded-lg bg-[rgba(244,162,77,0.08)]"
+                  >
+                    🔔 Send test push
+                  </button>
+                </div>
+              )}
             </div>
           </Section>
 

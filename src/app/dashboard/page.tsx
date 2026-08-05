@@ -5,6 +5,8 @@ import { format, startOfWeek, addDays, startOfMonth, getDaysInMonth } from 'date
 import { MealLog, TimelineView, DashboardStats, MOOD_MAP } from '@/types';
 import { computeStats } from '@/lib/services/mealService';
 import { MonoLabel, Badge, DayRingsChart, WeekBarChart, MonthLineChart, LogoMark, AnimatedTypewriterPrompt } from '@/components/ui';
+import { useToast } from '@/components/ui/ToastContext';
+import { useWebPush } from '@/hooks/useWebPush';
 
 const VIEWS: TimelineView[] = ['day', 'week', 'month'];
 
@@ -53,6 +55,8 @@ const WITTY_PROMPTS = [
 ];
 
 export default function DashboardPage() {
+  const { toast } = useToast();
+  const { isSubscribed, subscribe, loading: pushLoading } = useWebPush();
   const [view, setView] = useState<TimelineView>('day');
   const [meals, setMeals] = useState<MealLog[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -160,6 +164,27 @@ export default function DashboardPage() {
               <span className="text-xs font-mono font-bold text-[#5BB8D4]">{ruleStreak}d Clean</span>
             </Link>
           )}
+          {/* Smart Push Notification Bell */}
+          <button
+            onClick={async () => {
+              if (!isSubscribed) {
+                const ok = await subscribe();
+                if (ok) toast('Push notifications enabled! 🔔', 'success');
+                else toast('Could not enable notifications. Check browser permissions.', 'error');
+              }
+            }}
+            disabled={pushLoading}
+            title={isSubscribed ? 'Smart Notifications Active' : 'Click to enable smart meal & streak alerts'}
+            className={`h-9 px-3 rounded-xl border flex items-center gap-1.5 transition-all text-xs font-mono select-none ${
+              isSubscribed
+                ? 'bg-[rgba(92,184,138,0.08)] border-[rgba(92,184,138,0.3)] text-[var(--green)]'
+                : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
+            }`}
+          >
+            <span className="text-sm">🔔</span>
+            <span className="hidden sm:inline">{isSubscribed ? 'Alerts On' : 'Enable Alerts'}</span>
+          </button>
+
           {profile?.name && (
             <p className="text-sm text-[var(--text2)] font-mono hidden sm:block">Hey, {profile.name.split(' ')[0]}</p>
           )}

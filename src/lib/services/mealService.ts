@@ -330,7 +330,7 @@ export async function checkRulesAgainstMeal(
   userId: string,
   logId: string,
   items: Array<{ item_id: string; food_entity?: { name: string } }>
-): Promise<void> {
+): Promise<any[]> {
   const { data: rules } = await supabase
     .from('personal_rules')
     .select('rule_id, keywords')
@@ -338,7 +338,7 @@ export async function checkRulesAgainstMeal(
     .eq('active', true);
 
   if (!rules || rules.length === 0) {
-    return;
+    return [];
   }
 
   const traces: Array<{
@@ -374,4 +374,5 @@ export async function checkRulesAgainstMeal(
   if (traces.length > 0) {
     await supabase.from('rule_traces').insert(traces);
   }
+  return traces;
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/db/server';
 import { saveMealWithItems, getMealsForTimeline, getRecentMeals } from '@/lib/services/mealService';
 import { generateDailyInsight } from '@/lib/ai/gemini';
+import { sendPushToUser, WITTY_NOTIFICATIONS } from '@/lib/services/push';
 
 // GET — fetch meals for timeline or recent meals
 export async function GET(req: NextRequest) {
@@ -50,10 +51,10 @@ export async function POST(req: NextRequest) {
       logged_at: logged_at || undefined,
     });
 
-    // Fire-and-forget: regenerate daily insight
-    // We don't await these — user gets fast response, background work continues
+    // Fire-and-forget: regenerate daily insight & check rule breaks for push
     Promise.all([
       refreshDailyInsight(supabase, user.id),
+      checkRuleBreakPush(supabase, user.id, logId),
     ]).catch(console.error);
 
     return NextResponse.json({ log_id: logId, success: true });
@@ -86,4 +87,26 @@ async function refreshDailyInsight(supabase: any, userId: string) {
     .from('daily_insights')
     .upsert({ user_id: userId, insight_date: insightDate, insight_text: insight, generated_at: new Date().toISOString() },
       { onConflict: 'user_id,insight_date' });
+}
+
+async function checkRuleBreakPush(supabase: any, userId: string, logId: string) {
+  try {
+    const { data: traces } = await supabase
+      .from('rule_traces')
+      .select('trace_id')
+      .eq('log_id', logId);
+
+    if (traces && traces.length > 0) {
+      const pool = WITTY_NOTIFICATIONS.rule_break;
+      const prompt = pool[Math.floor(Math.random() * pool.length)];
+      await sendPushToUser(userId, {
+        title: prompt.title,
+        body: prompt.body,
+        url: '/rules',
+        tag: 'mito-rule-break',
+      });
+    }
+  } catch (e) {
+    console.error('Rule break push error:', e);
+  }
 }
