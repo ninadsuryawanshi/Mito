@@ -208,3 +208,30 @@ body::after {
 .waveform-bar-2 { animation: waveformPulse 0.7s ease-in-out infinite 0.3s; }
 .waveform-bar-3 { animation: waveformPulse 0.7s ease-in-out infinite 0.5s; }
 .waveform-bar-4 { animation: waveformPulse 0.7s ease-in-out infinite 0.2s; }
+
+/* Confetti particles for milestone celebration */
+@keyframes confettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+.confetti-particle {
+  position: absolute;
+  animation: confettiFall linear forwards;
+}
+
+/* Milestone celebration animations */
+@keyframes milestoneRing {
+  0%   { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes milestoneBounceIn {
+  0%   { opacity: 0; transform: scale(0.6) translateY(40px); }
+  70%  { opacity: 1; transform: scale(1.04) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes diamondSpin {
+  0%   { opacity: 0; transform: scale(0.4) rotate(-30deg); }
+  60%  { opacity: 1; transform: scale(1.08) rotate(4deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}

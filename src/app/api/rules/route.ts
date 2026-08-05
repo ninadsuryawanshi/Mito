@@ -115,3 +115,30 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const body = await req.json();
+    const ruleId = String(body?.rule_id || '');
+
+    if (!ruleId) {
+      return NextResponse.json({ error: 'rule_id required' }, { status: 400 });
+    }
+
+    const { error } = await supabase
+      .from('personal_rules')
+      .delete()
+      .eq('rule_id', ruleId)
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
