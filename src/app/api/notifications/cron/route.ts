@@ -19,7 +19,10 @@ async function handleCron(req: Request) {
     let mealType: 'breakfast' | 'lunch' | 'snack' | 'dinner' = mealTypeParam || 'lunch';
 
     if (!mealTypeParam) {
-      const hour = new Date().getHours();
+      // Calculate hour in Indian Standard Time (IST - Asia/Kolkata)
+      const istHourStr = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour12: false, hour: '2-digit' });
+      const hour = parseInt(istHourStr, 10);
+
       if (hour >= 6 && hour < 11) mealType = 'breakfast';
       else if (hour >= 11 && hour < 15) mealType = 'lunch';
       else if (hour >= 15 && hour < 18) mealType = 'snack';
