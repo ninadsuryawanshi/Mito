@@ -110,9 +110,19 @@ export async function analyzeMeal(
 
   // Prompt is kept intentionally short — reduces tokens, faster response, lower cost
   // We use a schema comment instead of verbose instructions
-  const prompt = `Analyze this Indian meal and return ONLY valid JSON.
-Meal: "${description}"
-Context: ${foodContext}
+  const prompt = `You are a food nutrition analysis AI for an Indian diet tracking app.
+Analyze the user input below and determine if it describes real food/drink items.
+
+User input: "${description}"
+${foodContext}
+
+### CRITICAL: NON-FOOD INPUT GATE
+If the input does NOT describe any real, specific food or drink items (e.g. it is vague like
+"whatever X ate", a random phrase, a question, or contains no identifiable food), you MUST
+respond with ONLY this JSON and nothing else:
+{"not_food": true, "reason": "one short sentence explaining what was unclear"}
+
+Only proceed with the full analysis below if real food items are clearly identifiable.
 
 ### JSON INTEGRITY RULES (STRICT):
 1. NO conversational text, no markdown blocks (no  \`\`\` json), and no preamble.
@@ -175,7 +185,13 @@ Rules:
 
   async function attemptParse(rawResponse: string): Promise<AIMealAnalysis> {
     const clean = extractJSON(rawResponse);
-    const parsed = JSON.parse(clean) as AIMealAnalysis;
+    const parsed = JSON.parse(clean) as AIMealAnalysis & { not_food?: boolean; reason?: string };
+    // If the AI determined input isn't food, surface a clean error immediately
+    if (parsed.not_food) {
+      throw new Error(
+        `That doesn't look like a food description. ${parsed.reason || 'Please describe what you actually ate.'}`
+      );
+    }
     if (!parsed.items || !Array.isArray(parsed.items)) {
       throw new Error('Invalid AI response structure: missing items array');
     }
@@ -194,7 +210,9 @@ Rules:
   const raw = await callGemini(prompt);
   try {
     return await attemptParse(raw);
-  } catch (firstErr) {
+  } catch (firstErr: any) {
+    // If AI explicitly flagged input as not-food, propagate immediately — don't retry
+    if (firstErr.message?.includes("doesn't look like a food description")) throw firstErr;
     console.warn('First parse attempt failed, retrying once:', firstErr, '\nRaw:', raw);
   }
 
@@ -335,8 +353,14 @@ async function analyzeMealFromPhotoGroq(
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error('GROQ_API_KEY not set');
 
-  const prompt = `Analyze this food photo. ${additionalContext ? `Context: ${additionalContext}` : ''}
-Return ONLY valid JSON matching this schema:
+  const prompt = `You are a food photo analysis AI for an Indian diet tracking app.
+${additionalContext ? `IMPORTANT — The user has identified this food as: "${additionalContext}". Trust this label. Use visual details only to refine portion size and preparation method, not to override the food identity.` : 'Analyze this food photo.'}
+
+### CRITICAL: NON-FOOD IMAGE GATE
+If the image clearly does NOT show food or drink AND no context was provided by the user, respond ONLY with:
+{"not_food": true, "reason": "one short sentence"}
+
+Otherwise, return ONLY valid JSON matching this schema:
 {
   "items": [{"name":"string","brand":null,"quantity":number,"unit":"piece|bowl|glass|plate|g|ml","cuisine":"string","region":null,"typical_context":"restaurant|home|packaged|street","calories":number,"protein_g":number,"carbs_g":number,"fat_g":number,"fiber_g":number,"sugar_g":number,"sodium_mg":number}],
   "total_calories":number,"total_protein_g":number,"total_carbs_g":number,"total_fat_g":number,"total_fiber_g":number,"total_sugar_g":number,"total_sodium_mg":number,
@@ -370,7 +394,13 @@ Return ONLY valid JSON matching this schema:
   if (!raw) throw new Error('Empty response from Groq Vision');
 
   const clean = raw.replace(/```json\n?|\n?```/g, '').trim();
-  const parsed = JSON.parse(clean) as AIMealAnalysis;
+  const parsed = JSON.parse(clean) as AIMealAnalysis & { not_food?: boolean; reason?: string };
+
+  if (parsed.not_food) {
+    throw new Error(
+      `That doesn't look like a food description. ${parsed.reason || 'Please describe what you actually ate.'}`
+    );
+  }
 
   parsed.total_calories = parsed.items.reduce((s, i) => s + (i.calories || 0), 0);
   parsed.total_protein_g = parsed.items.reduce((s, i) => s + (i.protein_g || 0), 0);
@@ -392,8 +422,14 @@ export async function analyzeMealFromPhoto(
   
   if (apiKey) {
     try {
-      const prompt = `Analyze this food photo. ${additionalContext ? `Context: ${additionalContext}` : ''}
-Return ONLY valid JSON matching this schema:
+      const prompt = `You are a food photo analysis AI for an Indian diet tracking app.
+${additionalContext ? `IMPORTANT — The user has identified this food as: "${additionalContext}". Trust this label. Use visual details only to refine portion size and preparation method, not to override the food identity.` : 'Analyze this food photo.'}
+
+### CRITICAL: NON-FOOD IMAGE GATE
+If the image clearly does NOT show food or drink AND no context was provided by the user, respond ONLY with:
+{"not_food": true, "reason": "one short sentence"}
+
+Otherwise, return ONLY valid JSON matching this schema:
 {
   "items": [{"name":"string","brand":null,"quantity":number,"unit":"piece|bowl|glass|plate|g|ml","cuisine":"string","region":null,"typical_context":"restaurant|home|packaged|street","calories":number,"protein_g":number,"carbs_g":number,"fat_g":number,"fiber_g":number,"sugar_g":number,"sodium_mg":number}],
   "total_calories":number,"total_protein_g":number,"total_carbs_g":number,"total_fat_g":number,"total_fiber_g":number,"total_sugar_g":number,"total_sodium_mg":number,
@@ -424,7 +460,13 @@ Return ONLY valid JSON matching this schema:
         const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
         if (raw) {
           const clean = raw.replace(/```json\n?|\n?```/g, '').trim();
-          const parsed = JSON.parse(clean) as AIMealAnalysis;
+          const parsed = JSON.parse(clean) as AIMealAnalysis & { not_food?: boolean; reason?: string };
+
+          if (parsed.not_food) {
+            throw new Error(
+              `That doesn't look like a food description. ${parsed.reason || 'Please describe what you actually ate.'}`
+            );
+          }
 
           parsed.total_calories = parsed.items.reduce((s, i) => s + (i.calories || 0), 0);
           parsed.total_protein_g = parsed.items.reduce((s, i) => s + (i.protein_g || 0), 0);

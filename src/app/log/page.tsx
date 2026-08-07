@@ -249,9 +249,13 @@ function LogContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          description: description.trim() || undefined,
+          // If a photo is present, send description as additional_context so the
+          // vision model receives the user's text hint (e.g. "ragi dosa") alongside
+          // the image rather than ignoring it.
+          description: !photoBase64 ? (description.trim() || undefined) : undefined,
           photo_base64: photoBase64 || undefined,
           photo_mime_type: photoMime,
+          additional_context: photoBase64 ? (description.trim() || undefined) : undefined,
         }),
       });
       const data = await res.json();
