@@ -31,6 +31,17 @@ export async function GET(req: NextRequest) {
     const now = new Date();
     const todayStr = format(now, 'yyyy-MM-dd');
 
+    // Fetch user active rules count to ensure user actually has rules setup
+    const { count: rulesCount } = await supabase
+      .from('personal_rules')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('active', true);
+
+    if (!rulesCount || rulesCount === 0) {
+      return NextResponse.json({ rule_streak: 0, broken_today: false, no_rules: true });
+    }
+
     // If a rule was broken today, current rule streak is 0
     if (breachDates.has(todayStr)) {
       return NextResponse.json({ rule_streak: 0, broken_today: true });
