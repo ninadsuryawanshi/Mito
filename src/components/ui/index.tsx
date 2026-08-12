@@ -199,6 +199,7 @@ export { CalorieTrendChart, DayRingsChart, WeekBarChart, MonthLineChart } from '
 export { PWAPrompt } from './PWAPrompt';
 export { LogoMark } from './LogoMark';
 export { AnimatedTypewriterPrompt, VEG_MEAL_PROMPTS } from './AnimatedTypewriterPrompt';
+export { OnboardingTour } from './OnboardingTour';
 
 
 

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/db/client';
-import { Button, Input, MonoLabel } from '@/components/ui';
+import { Button, Input, MonoLabel, OnboardingTour } from '@/components/ui';
 import { useToast } from '@/components/ui/ToastContext';
 import { computeWHORecommendations } from '@/lib/ai/gemini';
 import { useWebPush } from '@/hooks/useWebPush';
@@ -31,6 +31,12 @@ export default function SettingsPage() {
   useEffect(() => {
     fetch('/api/profile').then(r => r.json()).then(({ profile: p }) => setProfile(p));
     fetch('/api/viewer').then(r => r.json()).then(({ viewers: v }) => setViewers(v || []));
+
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam === 'share' || tabParam === 'export' || tabParam === 'profile') {
+      setActiveTab(tabParam);
+    }
   }, []);
 
   function updateField(field: string, value: any) {
@@ -269,6 +275,22 @@ export default function SettingsPage() {
                   </button>
                 </div>
               )}
+
+              <div className="border-t border-[var(--border)] pt-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--text)] font-medium">Guided App Tour</p>
+                  <p className="text-xs font-mono text-[var(--muted)]">Replay interactive spotlights</p>
+                </div>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('mito_tour_completed');
+                    toast('Tour reset! Head to Dashboard to view it.', 'info');
+                  }}
+                  className="text-xs font-mono text-[var(--accent)] border border-[rgba(244,162,77,0.3)] px-3 py-1.5 rounded-xl hover:bg-[var(--accent)] hover:text-[#0a0908] transition-all"
+                >
+                  ▶ Replay Tour
+                </button>
+              </div>
             </div>
           </Section>
 
@@ -382,9 +404,9 @@ export default function SettingsPage() {
       {activeTab === 'export' && (
         <div className="flex flex-col gap-4 animate-fade-up">
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5">
-            <h2 className="font-bold mb-1" style={{ fontFamily: 'Syne, serif' }}>Export Your Data</h2>
-            <p className="text-xs font-mono text-[var(--muted)] mb-5">
-              Download your meal logs. Your data, your ownership.
+            <h2 className="font-bold mb-1" style={{ fontFamily: 'Syne, serif' }}>Export & Share Your Logs</h2>
+            <p className="text-xs font-mono text-[var(--muted)] mb-5 leading-relaxed">
+              Download your food logs as CSV or HTML/PDF documents. Send them, print them out, share them with your dietitian, or upload them to LLMs (like ChatGPT or Gemini) to understand your eating habits even better!
             </p>
 
             <div className="flex flex-col gap-3">

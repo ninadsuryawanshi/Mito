@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { format, startOfWeek, addDays, startOfMonth, getDaysInMonth } from 'date-fns';
 import { MealLog, TimelineView, DashboardStats, MOOD_MAP } from '@/types';
 import { computeStats } from '@/lib/services/mealService';
-import { MonoLabel, Badge, DayRingsChart, WeekBarChart, MonthLineChart, LogoMark, AnimatedTypewriterPrompt } from '@/components/ui';
+import { MonoLabel, Badge, DayRingsChart, WeekBarChart, MonthLineChart, LogoMark, AnimatedTypewriterPrompt, OnboardingTour } from '@/components/ui';
 import { useToast } from '@/components/ui/ToastContext';
 import { useWebPush } from '@/hooks/useWebPush';
 
@@ -129,6 +129,7 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
+      <OnboardingTour />
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6 animate-fade-up">
@@ -136,7 +137,7 @@ export default function DashboardPage() {
           <LogoMark showText size={28} />
           <p className="text-[11px] font-mono text-[var(--muted)] uppercase tracking-wider mt-1">{today}</p>
         </div>
-        <div className="flex items-center gap-1.5 sm:gap-2 max-w-[65%] sm:max-w-none overflow-x-auto no-scrollbar shrink-0 justify-end">
+        <div id="header-streaks" className="flex items-center gap-1.5 sm:gap-2 max-w-[65%] sm:max-w-none overflow-x-auto no-scrollbar shrink-0 justify-end">
           {/* Logging Streak badge */}
           {streak > 0 && (
             <div
@@ -169,6 +170,7 @@ export default function DashboardPage() {
           )}
           {/* Settings / Profile link — mobile only, desktop uses sidebar */}
           <Link href="/settings"
+            id="nav-settings-mobile"
             aria-label="Settings"
             className="md:hidden w-9 h-9 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-all active:scale-95">
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -205,7 +207,7 @@ export default function DashboardPage() {
       )}
 
       {/* Quick-Log Prompt Box with glowing moving gradient border */}
-      <div className="moving-gradient-border-wrapper mb-7 animate-fade-up">
+      <div id="quick-log-prompt" className="moving-gradient-border-wrapper mb-7 animate-fade-up">
         <div className="bg-[#12100e] rounded-[1.6rem] p-7 sm:p-8 flex flex-col gap-5">
           {/* Main prompt input preview -> opens /log with autoFocus */}
           <Link href="/log?autoFocus=true" className="flex items-center justify-between group py-1 gap-4">
@@ -288,7 +290,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8">
 
           {/* LEFT COLUMN: Stats + Insight + Rules */}
-          <div className="lg:col-span-1 flex flex-col gap-4">
+          <div id="macro-stats" className="lg:col-span-1 flex flex-col gap-4">
 
             {/* Insight */}
             {insight && (

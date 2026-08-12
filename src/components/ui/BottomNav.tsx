@@ -37,6 +37,7 @@ export default function BottomNav() {
           }
           return (
             <Link key={item.href} href={item.href}
+              id={item.href === '/rules' ? 'nav-rules' : undefined}
               className="flex flex-col items-center gap-1 py-1 px-3 transition-all active:scale-95 md:px-0 md:w-full md:py-2 md:hover:bg-[var(--surface2)] md:rounded-lg">
               <span className={`text-xl transition-all ${active ? 'text-[var(--accent)]' : 'text-[var(--muted)]'}`}>
                 {item.icon}
@@ -50,7 +51,7 @@ export default function BottomNav() {
       </div>
 
       {/* Desktop settings link at bottom */}
-      <div className="hidden md:flex flex-col items-center pb-6 pt-4 border-t border-[var(--border)] gap-3">
+      <div id="nav-settings" className="hidden md:flex flex-col items-center pb-6 pt-4 border-t border-[var(--border)] gap-3">
         <Link href="/settings"
           className="flex flex-col items-center gap-1 text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
           <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
