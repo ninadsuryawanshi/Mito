@@ -28,6 +28,11 @@ export default function SettingsPage() {
   const [copiedToken, setCopiedToken] = useState('');
   const [exportLoading, setExportLoading] = useState(false);
 
+  // Account deletion
+  const [deleteStep, setDeleteStep] = useState<0 | 1 | 2>(0); // 0=hidden, 1=warn1, 2=confirm
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
   useEffect(() => {
     fetch('/api/profile').then(r => r.json()).then(({ profile: p }) => setProfile(p));
     fetch('/api/viewer').then(r => r.json()).then(({ viewers: v }) => setViewers(v || []));
@@ -67,6 +72,25 @@ export default function SettingsPage() {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/login');
+  }
+
+  async function handleDeleteAccount() {
+    if (deleteConfirmText !== 'DELETE') return;
+    setDeleting(true);
+    try {
+      const res = await fetch('/api/account/delete', { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Deletion failed');
+      // Sign out locally and clear all local storage
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      localStorage.clear();
+      sessionStorage.clear();
+      router.push('/login?deleted=1');
+    } catch (err: any) {
+      toast(err.message || 'Could not delete account. Please try again.', 'error');
+      setDeleting(false);
+    }
   }
 
   async function addViewer() {
@@ -297,6 +321,108 @@ export default function SettingsPage() {
           <Button size="lg" onClick={handleSave} loading={saving} className="font-mono tracking-wide">
             Save Changes
           </Button>
+
+          {/* ── DANGER ZONE ── */}
+          <div className="mt-2 rounded-2xl border border-[var(--red)] border-opacity-40 bg-[rgba(224,92,92,0.04)] p-5">
+            <h3 className="text-sm font-bold text-[var(--red)] mb-1" style={{ fontFamily: 'Syne, serif' }}>Danger Zone</h3>
+            <p className="text-xs font-mono text-[var(--muted)] mb-4 leading-relaxed">
+              Deleting your account is <strong className="text-[var(--text)]">permanent and irreversible</strong>. All your meal logs, rules, nutrition data, viewer access, and push subscriptions will be permanently erased from our servers.
+            </p>
+            <button
+              onClick={() => setDeleteStep(1)}
+              className="text-xs font-mono text-[var(--red)] border border-[rgba(224,92,92,0.4)] px-4 py-2 rounded-xl hover:bg-[var(--red)] hover:text-white transition-all"
+            >
+              Delete My Account
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── DELETE CONFIRMATION MODAL – Step 1 ── */}
+      {deleteStep === 1 && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-[#12100e] border border-[rgba(224,92,92,0.5)] rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.9)] flex flex-col gap-4 animate-fade-up">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(224,92,92,0.12)] flex items-center justify-center text-xl">
+                ⚠️
+              </div>
+              <div>
+                <h2 className="font-bold text-[var(--text)]" style={{ fontFamily: 'Syne, serif' }}>Are you sure?</h2>
+                <p className="text-[10px] font-mono text-[var(--red)] uppercase tracking-widest">This cannot be undone</p>
+              </div>
+            </div>
+            <div className="text-xs font-mono text-[var(--muted)] leading-relaxed space-y-2">
+              <p>You are about to permanently delete your Mito account. This will erase:</p>
+              <ul className="list-disc pl-4 space-y-1 text-[var(--muted)]">
+                <li>All meal logs and nutrition history</li>
+                <li>All personal rules and streak records</li>
+                <li>All viewer access links</li>
+                <li>All push notification subscriptions</li>
+                <li>Your profile and account credentials</li>
+              </ul>
+              <p className="text-[var(--text)] font-semibold">There is no way to recover this data after deletion.</p>
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => setDeleteStep(0)}
+                className="flex-1 py-2.5 rounded-xl border border-[var(--border)] text-xs font-mono text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+              >
+                Cancel — Keep My Account
+              </button>
+              <button
+                onClick={() => setDeleteStep(2)}
+                className="flex-1 py-2.5 rounded-xl bg-[var(--red)] text-white text-xs font-mono font-bold hover:opacity-90 transition-all"
+              >
+                I Understand, Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── DELETE CONFIRMATION MODAL – Step 2 ── */}
+      {deleteStep === 2 && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-[#12100e] border border-[rgba(224,92,92,0.6)] rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.9)] flex flex-col gap-4 animate-fade-up">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[rgba(224,92,92,0.15)] flex items-center justify-center text-xl">
+                🗑️
+              </div>
+              <div>
+                <h2 className="font-bold text-[var(--red)]" style={{ fontFamily: 'Syne, serif' }}>Final Confirmation</h2>
+                <p className="text-[10px] font-mono text-[var(--muted)] uppercase tracking-widest">Type to confirm</p>
+              </div>
+            </div>
+            <p className="text-xs font-mono text-[var(--muted)] leading-relaxed">
+              To confirm, type{' '}
+              <code className="px-1.5 py-0.5 rounded bg-[rgba(224,92,92,0.12)] text-[var(--red)] font-bold tracking-widest">DELETE</code>
+              {' '}in the box below. This will immediately and permanently delete your account and all associated data.
+            </p>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={e => setDeleteConfirmText(e.target.value.toUpperCase())}
+              placeholder="Type DELETE to confirm"
+              autoFocus
+              className="w-full bg-[var(--surface2)] border border-[rgba(224,92,92,0.4)] focus:border-[var(--red)] rounded-xl px-4 py-3 text-sm font-mono text-[var(--red)] placeholder:text-[var(--muted)] outline-none tracking-widest transition-all"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setDeleteStep(0); setDeleteConfirmText(''); }}
+                className="flex-1 py-2.5 rounded-xl border border-[var(--border)] text-xs font-mono text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== 'DELETE' || deleting}
+                className="flex-1 py-2.5 rounded-xl bg-[var(--red)] text-white text-xs font-mono font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-all flex items-center justify-center gap-2"
+              >
+                {deleting && <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                {deleting ? 'Deleting...' : 'Delete Forever'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
