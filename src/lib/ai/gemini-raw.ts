@@ -33,7 +33,7 @@ export async function callGeminiRaw(prompt: string): Promise<string> {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
         body: JSON.stringify({
-            model: 'llama3-70b-8192',
+            model: 'openai/gpt-oss-20b',
             temperature: 0.3,
             max_tokens: 512,
             messages: [

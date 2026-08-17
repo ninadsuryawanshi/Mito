@@ -10,7 +10,7 @@ async function callGroq(prompt: string): Promise<string> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
+      model: 'openai/gpt-oss-120b',
       temperature: 0.2,
       max_tokens: 4096,
       messages: [
@@ -373,7 +373,7 @@ Otherwise, return ONLY valid JSON matching this schema:
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model: 'llama-3.2-11b-vision-preview',
+      model: 'openai/gpt-oss-120b',
       temperature: 0.2,
       max_tokens: 2048,
       messages: [
