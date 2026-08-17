@@ -15,28 +15,28 @@ const TOUR_STEPS: TourStep[] = [
     targetId: 'quick-log-prompt',
     title: 'Fast & Natural Logging',
     description: 'Tap here to type, speak, or take a photo of your meal. Done in under 30 seconds with zero menu searching.',
-    badge: 'Step 1 of 5',
+    badge: 'Step 1 of 6',
     position: 'bottom',
   },
   {
     targetId: 'header-streaks',
     title: 'Track Your Streaks',
     description: 'Keep your Log Streak going by logging daily, and your Clean Streak alive by avoiding personal rule breaks.',
-    badge: 'Step 2 of 5',
+    badge: 'Step 2 of 6',
     position: 'bottom',
   },
   {
     targetId: 'macro-stats',
     title: 'The Full Nutrition Picture',
     description: 'Instantly view your calories, protein, fiber, sugar, and sodium totals for the day, week, or month.',
-    badge: 'Step 3 of 5',
+    badge: 'Step 3 of 6',
     position: 'top',
   },
   {
     targetId: 'nav-rules',
     title: 'Your Rules. Your Call.',
     description: 'Define personal rules (e.g. "no late night sugar"). Mito quietly monitors your logs without judgment or scolding.',
-    badge: 'Step 4 of 5',
+    badge: 'Step 4 of 6',
     position: 'top',
   },
   {
@@ -44,7 +44,7 @@ const TOUR_STEPS: TourStep[] = [
     title: 'Share & Export Logs',
     description: 'Download your food logs as CSV or HTML/PDF documents, print them, share links with dietitians, or feed them to LLMs!',
     badge: 'Step 5 of 6',
-    position: 'bottom',
+    position: 'top',
   },
   {
     targetId: 'quick-log-prompt',
@@ -55,6 +55,10 @@ const TOUR_STEPS: TourStep[] = [
   },
 ];
 
+const CARD_HEIGHT = 220;
+const CARD_WIDTH = 384;
+const CARD_OFFSET = 20;
+
 export function OnboardingTour({ onComplete }: { onComplete?: () => void }) {
   const [activeStep, setActiveStep] = useState<number | null>(null);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
@@ -62,9 +66,7 @@ export function OnboardingTour({ onComplete }: { onComplete?: () => void }) {
   useEffect(() => {
     const completed = localStorage.getItem('mito_tour_completed');
     if (!completed) {
-      const timer = setTimeout(() => {
-        setActiveStep(0);
-      }, 500);
+      const timer = setTimeout(() => setActiveStep(0), 500);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -73,25 +75,25 @@ export function OnboardingTour({ onComplete }: { onComplete?: () => void }) {
     if (activeStep === null) return;
     const step = TOUR_STEPS[activeStep];
 
-    const updatePosition = () => {
+    const measure = () => {
       const el = document.getElementById(step.targetId);
-      if (el) {
-        // Scroll element into view with margin
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => {
-          setTargetRect(el.getBoundingClientRect());
-        }, 200);
-      } else {
-        setTargetRect(null);
-      }
+      if (el) setTargetRect(el.getBoundingClientRect());
+      else setTargetRect(null);
     };
 
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
+    const el = document.getElementById(step.targetId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      setTimeout(measure, 450);
+    } else {
+      setTargetRect(null);
+    }
+
+    window.addEventListener('resize', measure);
+    window.addEventListener('scroll', measure, true);
     return () => {
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', measure, true);
     };
   }, [activeStep]);
 
@@ -103,35 +105,52 @@ export function OnboardingTour({ onComplete }: { onComplete?: () => void }) {
 
   function handleNext() {
     if (activeStep === null) return;
-    if (activeStep < TOUR_STEPS.length - 1) {
-      setActiveStep(activeStep + 1);
-    } else {
-      finishTour();
-    }
+    if (activeStep < TOUR_STEPS.length - 1) setActiveStep(activeStep + 1);
+    else finishTour();
   }
 
   function handleBack() {
-    if (activeStep !== null && activeStep > 0) {
-      setActiveStep(activeStep - 1);
-    }
+    if (activeStep !== null && activeStep > 0) setActiveStep(activeStep - 1);
   }
 
   if (activeStep === null) return null;
 
   const currentStep = TOUR_STEPS[activeStep];
-
   const padding = 8;
   const rx = 14;
 
+  const computeCardStyle = (): React.CSSProperties => {
+    if (!targetRect) {
+      return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
+    }
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const rawLeft = vw / 2 - CARD_WIDTH / 2;
+    const clampedLeft = Math.max(8, Math.min(rawLeft, vw - CARD_WIDTH - 8));
+
+    let top: number;
+
+    if (currentStep.position === 'top') {
+      top = targetRect.top - padding - CARD_OFFSET - CARD_HEIGHT;
+      if (top < 8) top = targetRect.bottom + padding + CARD_OFFSET;
+    } else {
+      top = targetRect.bottom + padding + CARD_OFFSET;
+      if (top + CARD_HEIGHT > vh - 8) top = targetRect.top - padding - CARD_OFFSET - CARD_HEIGHT;
+    }
+
+    top = Math.max(8, Math.min(top, vh - CARD_HEIGHT - 8));
+
+    return { top, left: clampedLeft };
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] pointer-events-auto">
-      {/* SVG Mask overlay for sharp hole cutout */}
+    <div className="fixed inset-0 z-[100] pointer-events-none">
       <svg className="fixed inset-0 w-full h-full pointer-events-none z-[101]">
         <defs>
           <mask id="spotlight-mask">
-            {/* White background = dim layer */}
             <rect x="0" y="0" width="100%" height="100%" fill="white" />
-            {/* Black rectangle cutout = 100% transparent hole for target */}
             {targetRect && (
               <rect
                 x={targetRect.left - padding}
@@ -145,18 +164,13 @@ export function OnboardingTour({ onComplete }: { onComplete?: () => void }) {
             )}
           </mask>
         </defs>
-        {/* Dark backdrop with mask applied */}
         <rect
-          x="0"
-          y="0"
-          width="100%"
-          height="100%"
+          x="0" y="0" width="100%" height="100%"
           fill="rgba(8, 7, 6, 0.88)"
           mask="url(#spotlight-mask)"
         />
       </svg>
 
-      {/* Target border glow frame */}
       {targetRect && (
         <div
           className="fixed pointer-events-none z-[102] transition-all duration-300"
@@ -172,24 +186,9 @@ export function OnboardingTour({ onComplete }: { onComplete?: () => void }) {
         />
       )}
 
-      {/* Floating Tooltip Card - Positioned comfortably above or below target */}
       <div
         className="fixed z-[103] w-full max-w-sm px-4 pointer-events-auto transition-all duration-300"
-        style={
-          targetRect
-            ? currentStep.position === 'top'
-              ? {
-                  bottom: Math.max(window.innerHeight - targetRect.top + 16, 85),
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                }
-              : {
-                  top: Math.min(targetRect.bottom + 16, window.innerHeight - 280),
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                }
-            : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
-        }
+        style={computeCardStyle()}
       >
         <div className="bg-[#12100e] border border-[rgba(244,162,77,0.4)] rounded-2xl p-5 shadow-[0_10px_50px_rgba(0,0,0,0.98),0_0_30px_rgba(244,162,77,0.25)] flex flex-col gap-3 animate-fade-up">
           <div className="flex items-center justify-between">
@@ -225,7 +224,7 @@ export function OnboardingTour({ onComplete }: { onComplete?: () => void }) {
               ))}
             </div>
 
-            <div className="flex items-center gap-2 z-[104]">
+            <div className="flex items-center gap-2">
               {activeStep > 0 && (
                 <button
                   type="button"
@@ -249,6 +248,3 @@ export function OnboardingTour({ onComplete }: { onComplete?: () => void }) {
     </div>
   );
 }
-
-
-
