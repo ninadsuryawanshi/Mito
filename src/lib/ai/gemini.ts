@@ -3,7 +3,10 @@ import { AIMealAnalysis, AIFoodItem, DashboardStats } from '@/types';
 // Pinned to 3.6-flash — stable since July 21 2026. Avoid 'latest' alias; it silently
 // switched to 3.7-flash on Aug 13 which caused 503s during its initial rollout.
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
-const GEMINI_TIMEOUT_MS = 5_000; // Fail fast → Groq fallback rather than hanging the user
+// 9s gives Gemini enough runway for the complex nutrition prompt (long schema + rules)
+// while still failing fast vs the default ~30s HTTP timeout. Adjust down if Groq
+// becomes the primary and you want to reduce fallback latency further.
+const GEMINI_TIMEOUT_MS = 9_000;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 async function callGroq(prompt: string): Promise<string> {
