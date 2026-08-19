@@ -3,10 +3,7 @@ import { AIMealAnalysis, AIFoodItem, DashboardStats } from '@/types';
 // Pinned to 3.6-flash — stable since July 21 2026. Avoid 'latest' alias; it silently
 // switched to 3.7-flash on Aug 13 which caused 503s during its initial rollout.
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
-// 9s gives Gemini enough runway for the complex nutrition prompt (long schema + rules)
-// while still failing fast vs the default ~30s HTTP timeout. Adjust down if Groq
-// becomes the primary and you want to reduce fallback latency further.
-const GEMINI_TIMEOUT_MS = 9_000;
+
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 async function callGroq(prompt: string): Promise<string> {
@@ -71,32 +68,23 @@ async function callGemini(prompt: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (apiKey) {
     try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
-      let response: Response;
-      try {
-        response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: controller.signal,
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            // 4096 tokens prevents mid-JSON truncation for complex multi-item meals
-            generationConfig: { temperature: 0.2, maxOutputTokens: 4096, responseMimeType: 'application/json' },
-          }),
-        });
-      } finally {
-        clearTimeout(timer);
-      }
+      const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          // 4096 tokens prevents mid-JSON truncation for complex multi-item meals
+          generationConfig: { temperature: 0.2, maxOutputTokens: 4096, responseMimeType: 'application/json' },
+        }),
+      });
       if (response.ok) {
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
         if (text) return text;
       }
       console.warn(`Gemini failed (${response.status}), falling back to Groq...`);
-    } catch (e: any) {
-      const reason = e?.name === 'AbortError' ? `timeout after ${GEMINI_TIMEOUT_MS}ms` : e;
-      console.warn('Gemini error, trying Groq:', reason);
+    } catch (e) {
+      console.warn('Gemini error, trying Groq:', e);
     }
   }
   return callGroq(prompt);
@@ -453,30 +441,22 @@ Otherwise, return ONLY valid JSON matching this schema:
   "serving_assumption":"string if assumed else null"
 }`;
 
-      const visionController = new AbortController();
-      const visionTimer = setTimeout(() => visionController.abort(), GEMINI_TIMEOUT_MS);
-      let response: Response;
-      try {
-        response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: visionController.signal,
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { inline_data: { mime_type: mimeType, data: base64Image } },
-                { text: prompt }
-              ]
-            }],
-            generationConfig: {
-              temperature: 0.2,
-              responseMimeType: 'application/json',
-            },
-          }),
-        });
-      } finally {
-        clearTimeout(visionTimer);
-      }
+      const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { inline_data: { mime_type: mimeType, data: base64Image } },
+              { text: prompt }
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.2,
+            responseMimeType: 'application/json',
+          },
+        }),
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -505,9 +485,8 @@ Otherwise, return ONLY valid JSON matching this schema:
         const errText = await response.text();
         console.warn(`Gemini Vision failed (${response.status}), trying Groq fallback:`, errText);
       }
-    } catch (e: any) {
-      const reason = e?.name === 'AbortError' ? `timeout after ${GEMINI_TIMEOUT_MS}ms` : e;
-      console.warn('Gemini Vision error, trying Groq fallback:', reason);
+    } catch (e) {
+      console.warn('Gemini Vision error, trying Groq fallback:', e);
     }
   }
 
