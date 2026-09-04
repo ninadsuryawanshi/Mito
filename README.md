@@ -224,8 +224,8 @@ The AI prompt enforces a set of domain-specific rules:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/mito.git
-cd mito
+git clone https://github.com/ninadsuryawanshi/Mito.git
+cd Mito
 ```
 
 ### 2. Install Dependencies
@@ -462,6 +462,6 @@ Meal reminder push notifications are triggered by Vercel Cron. The schedules are
 
 <div align="center">
 
-[Live App](https://mitohealth.vercel.app) · [Report a Bug](https://github.com/your-org/mito/issues) · [Request a Feature](https://github.com/your-org/mito/issues)
+[Live App](https://mitohealth.vercel.app) · [Report a Bug](https://github.com/ninadsuryawanshi/Mito/issues) · [Request a Feature](https://github.com/ninadsuryawanshi/Mito/issues)
 
 </div>
