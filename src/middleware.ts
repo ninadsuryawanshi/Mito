@@ -32,8 +32,7 @@ export async function middleware(req: NextRequest) {
     }
   );
 
-  console.log('[Middleware] URL:', req.nextUrl.pathname);
-  console.log('[Middleware] Found Cookies:', req.cookies.getAll().map(c => c.name).join(', '));
+
 
   // Use getSession() instead of getUser() — getSession() reads the JWT from
   // the cookie locally without making a network request to Supabase.
@@ -42,7 +41,7 @@ export async function middleware(req: NextRequest) {
   const { data: { session }, error } = await supabase.auth.getSession();
   const user = session?.user ?? null;
 
-  console.log('[Middleware] User ID:', user?.id || 'null', '| Error:', error?.message || 'none');
+
 
   const isAppPage = 
     req.nextUrl.pathname.startsWith('/dashboard') ||

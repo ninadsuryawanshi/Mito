@@ -7,7 +7,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const supabase = await createServerSupabaseClient();
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user ?? null;
-  console.log('[layout] Path: /dashboard | User:', user?.id || 'null');
   if (!user) redirect('/login');
 
   return (

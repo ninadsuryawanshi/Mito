@@ -19,8 +19,6 @@ export default function LoginPage() {
     const supabase = createClient();
     const { error: err, data } = await supabase.auth.signInWithPassword({ email, password });
     if (err) { setError(err.message); setLoading(false); return; }
-    console.log('Login successful. Session:', data.session ? 'exists' : 'none');
-
     // Wait for the cookie to be available
     setTimeout(() => {
       window.location.href = '/dashboard';
