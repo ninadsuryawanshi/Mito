@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { PersonalRule } from '@/types';
-import { Button, Input, MonoLabel, Badge, Spinner, useToast } from '@/components/ui';
+import { Button, Input, MonoLabel, Badge, Spinner, useToast, OnboardingTour } from '@/components/ui';
 
 const MILESTONES = [4, 10, 20, 30, 60, 100, 200, 300, 365];
 
@@ -238,16 +238,17 @@ function DiamondStreak({ streak, isMilestone }: { streak: number; isMilestone: b
         className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 pointer-events-none"
       >
         <span
-          className={`font-bold leading-none tabular-nums ${isMilestone ? 'text-[var(--accent)]' : 'text-[var(--text)]'
+          className={`font-bold leading-none tabular-nums ${isMilestone ? 'text-[var(--gold-3)]' : 'text-[var(--gold-4)]'
             }`}
           style={{
             fontFamily: 'Syne, serif',
             fontSize: streak >= 100 ? '1.35rem' : streak >= 10 ? '1.6rem' : '1.8rem',
+            textShadow: '0 0 16px rgba(232,160,48,0.35)',
           }}
         >
           {streak}
         </span>
-        <span className="text-[8px] font-mono uppercase tracking-[0.15em] text-[var(--muted)]">
+        <span className="text-[8px] font-mono uppercase tracking-[0.15em] text-[var(--muted2)]">
           {streak === 1 ? 'day' : 'days'}
         </span>
       </div>
@@ -296,6 +297,9 @@ export default function RulesPage() {
   useEffect(() => { fetchRules(); }, []);
 
   const isMilestone = MILESTONES.includes(ruleStreak);
+  const activeRulesCount = rules.filter(r => r.active).length;
+  const monthlyBreachesTotal = rules.reduce((sum, rule) => sum + (rule.monthly_breaches_count || 0), 0);
+  const nextMilestone = MILESTONES.find(m => m > ruleStreak);
 
   async function addRule() {
     if (!newRule.trim()) return;
@@ -343,10 +347,12 @@ export default function RulesPage() {
       <div className="max-w-4xl mx-auto px-4 py-6">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-0 animate-fade-up">
+        <div className="flex items-start justify-between gap-3 mb-1 animate-fade-up">
           <div>
-            <h1 className="text-2xl font-bold" style={{ fontFamily: 'Syne, serif' }}>Rules</h1>
-            <p className="text-xs font-mono text-[var(--muted)] mt-1 uppercase tracking-widest">Your personal food rules</p>
+            <h1 className="text-[30px] leading-none font-bold" style={{ fontFamily: 'Syne, serif' }}>Rules</h1>
+            <p className="text-[12px] text-[var(--muted)] mt-1.5" style={{ fontFamily: 'var(--font-body)' }}>
+              Personal guardrails for better eating decisions
+            </p>
           </div>
           <Button variant="secondary" size="sm" onClick={() => setAdding(!adding)}>
             {adding ? 'Cancel' : '+ Add rule'}
@@ -373,7 +379,7 @@ export default function RulesPage() {
                 Clean Streak
               </span>
               {isMilestone && (
-                <span className="text-[10px] font-mono font-bold bg-[rgba(244,162,77,0.12)] text-[var(--accent)] border border-[rgba(244,162,77,0.3)] px-3 py-0.5 rounded-full">
+                <span className="text-[10px] font-mono font-bold bg-[rgba(244,162,77,0.12)] text-[var(--gold-1)] border border-[rgba(244,162,77,0.3)] px-3 py-0.5 rounded-full">
                   ✦ Milestone Day
                 </span>
               )}
@@ -386,14 +392,35 @@ export default function RulesPage() {
               </p>
               {/* Next milestone hint */}
               {rules.length > 0 && !isMilestone && (() => {
-                const next = MILESTONES.find(m => m > ruleStreak);
-                return next ? (
+                return nextMilestone ? (
                   <p className="text-[10px] font-mono text-[var(--muted2)]">
-                    {next - ruleStreak} day{next - ruleStreak !== 1 ? 's' : ''} to next milestone · {next}d
+                    {nextMilestone - ruleStreak} day{nextMilestone - ruleStreak !== 1 ? 's' : ''} to next milestone · {nextMilestone}d
                   </p>
                 ) : null;
               })()}
             </div>
+          </div>
+        </div>
+
+        {/* Stats strip */}
+        <div className="grid grid-cols-3 gap-2 mb-6 animate-fade-up">
+          <div className="mito-card p-3 text-center">
+            <p className="text-[22px] font-bold leading-none" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
+              {activeRulesCount}
+            </p>
+            <p className="text-[10px] uppercase tracking-wider mt-1" style={{ color: 'var(--muted)' }}>Active rules</p>
+          </div>
+          <div className="mito-card p-3 text-center">
+            <p className="text-[22px] font-bold leading-none" style={{ fontFamily: 'var(--font-display)', color: monthlyBreachesTotal > 0 ? 'var(--red)' : 'var(--green)' }}>
+              {monthlyBreachesTotal}
+            </p>
+            <p className="text-[10px] uppercase tracking-wider mt-1" style={{ color: 'var(--muted)' }}>Breaches this month</p>
+          </div>
+          <div className="mito-card p-3 text-center">
+            <p className="text-[22px] font-bold leading-none" style={{ fontFamily: 'var(--font-display)', color: 'var(--gold-1)' }}>
+              {nextMilestone ? Math.max(0, nextMilestone - ruleStreak) : 0}
+            </p>
+            <p className="text-[10px] uppercase tracking-wider mt-1" style={{ color: 'var(--muted)' }}>Days to next</p>
           </div>
         </div>
 
@@ -422,20 +449,22 @@ export default function RulesPage() {
         {loading ? (
           <div className="flex justify-center py-16"><Spinner size="lg" /></div>
         ) : rules.length === 0 ? (
-          <div className="text-center py-16 border border-dashed border-[var(--border)] rounded-2xl animate-fade-up">
+          <div className="text-center py-16 border border-dashed border-[var(--border)] rounded-2xl animate-fade-up bg-[var(--surface)]">
             <div className="text-4xl mb-3">⊘</div>
-            <p className="text-sm text-[var(--muted)]">No rules yet.</p>
-            <p className="text-xs text-[var(--muted2)] mt-1 font-mono">Add rules from your doctor, dietitian, or yourself.</p>
+            <p className="text-sm text-[var(--text2)]">No rules yet.</p>
+            <p className="text-xs text-[var(--muted)] mt-1">Add guardrails from your doctor, dietitian, or your own goals.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-fade-up">
             {rules.map((rule, i) => (
               <div key={rule.rule_id}
-                className={`bg-[var(--surface)] border rounded-2xl p-5 transition-all ${rule.active ? 'border-[var(--border)]' : 'border-[var(--border)] opacity-50'}`}
+                className={`bg-[var(--surface)] border rounded-2xl p-5 transition-all ${rule.active ? 'border-[var(--border)]' : 'border-[var(--border)] opacity-65'}`}
                 style={{ animationDelay: `${i * 0.05}s` }}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
-                    <p className="font-medium text-sm" style={{ fontFamily: 'Syne, serif' }}>{rule.description}</p>
+                    <p className="font-semibold text-[15px] leading-snug" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
+                      {rule.description}
+                    </p>
 
                     {/* Monthly Breach Counter Badge */}
                     <div className="mt-2.5 flex items-center gap-2">
@@ -461,7 +490,7 @@ export default function RulesPage() {
                   <div className="flex flex-col items-center gap-2 shrink-0">
                     {/* Toggle */}
                     <button onClick={() => toggleRule(rule)}
-                      className={`w-11 h-6 rounded-full transition-all ${rule.active ? 'bg-[var(--accent)]' : 'bg-[var(--muted2)]'}`}>
+                      className={`w-11 h-6 rounded-full transition-all ${rule.active ? 'bg-[var(--gold-2)]' : 'bg-[var(--muted2)]'}`}>
                       <div className={`w-5 h-5 rounded-full bg-white transition-transform mx-0.5 ${rule.active ? 'translate-x-5' : 'translate-x-0'}`} />
                     </button>
                     {/* Delete */}
@@ -503,7 +532,8 @@ export default function RulesPage() {
                       setAdding(true);
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
-                    className="shrink-0 px-3 py-1.5 rounded-xl bg-[var(--surface)] border border-[var(--accent)] text-[var(--accent)] text-xs font-mono font-medium hover:bg-[var(--accent)] hover:text-[#0a0908] transition-all"
+                    className="shrink-0 px-3 py-1.5 rounded-xl bg-[var(--surface)] border text-xs font-mono font-medium transition-all"
+                    style={{ borderColor: 'rgba(232,160,48,0.45)', color: 'var(--gold-1)' }}
                   >
                     + Rule
                   </button>
