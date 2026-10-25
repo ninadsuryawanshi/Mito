@@ -354,7 +354,7 @@ export default function RulesPage() {
               Personal guardrails for better eating decisions
             </p>
           </div>
-          <Button variant="secondary" size="sm" onClick={() => setAdding(!adding)}>
+          <Button variant="ghost" size="sm" onClick={() => setAdding(!adding)}>
             {adding ? 'Cancel' : '+ Add rule'}
           </Button>
         </div>

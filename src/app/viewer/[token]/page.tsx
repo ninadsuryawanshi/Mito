@@ -194,7 +194,7 @@ export default function ViewerPage({ params }: { params: { token: string } }) {
                                 </div>
 
                                 <div className="flex flex-wrap gap-2">
-                                    <Badge color="accent">🔥 {Math.round(meal.total_calories || 0)} kcal</Badge>
+                                    <Badge color="gold">🔥 {Math.round(meal.total_calories || 0)} kcal</Badge>
                                     {data.permission_level === 'detailed' && (
                                         <>
                                             <Badge color="blue">P {Math.round(meal.total_protein_g || 0)}g</Badge>

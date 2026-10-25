@@ -2,13 +2,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from "framer-motion";
 import { createClient } from '@/lib/db/client';
 import { Button, Input } from '@/components/ui';
 
-const fadeUp = {
+const fadeUp:Variants = {
   hidden: { opacity: 0, y: 20 },
-  show: (d: number) => ({ opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 24, delay: d } }),
+  show: (d: number) => ({ opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 280, damping: 24, delay: d } }),
 };
 
 export default function LoginPage() {

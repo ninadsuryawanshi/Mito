@@ -20,16 +20,28 @@ function Sparkle({ x, y, delay, size }: { x: string; y: string; delay: number; s
 }
 
 /* ─── Animated number count-up ──────────────────────────── */
-function AnimatedNumber({ value, className }: { value: number; className?: string }) {
+
+function AnimatedNumber({
+  value,
+  className,
+  style,
+}: {
+  value: number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   const mv = useMotionValue(0);
   const spring = useSpring(mv, { stiffness: 70, damping: 20 });
-  const display = useTransform(spring, (v) => Math.round(v).toLocaleString());
-
+const display = useTransform(spring, (v) => Math.round(v).toLocaleString());
   useEffect(() => {
     mv.set(value);
   }, [value, mv]);
 
-  return <motion.span className={className}>{display}</motion.span>;
+  return (
+    <motion.span className={className} style={style}>
+      {display}
+    </motion.span>
+  );
 }
 
 /* ─── Main CalorieRing component ────────────────────────── */

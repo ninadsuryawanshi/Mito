@@ -107,7 +107,7 @@ function LogContent() {
       .catch(console.error);
   }, []);
 
-  async function startRecording() {
+  const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioChunksRef.current = [];
@@ -166,13 +166,14 @@ function LogContent() {
       toast('Microphone access denied or unavailable.', 'error');
       setIsListening(false);
     }
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  function stopRecording() {
+  const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
     }
-  }
+  }, []);
 
   const toggleListening = useCallback(() => {
     if (isTranscribing) return;
@@ -181,7 +182,7 @@ function LogContent() {
     } else {
       startRecording();
     }
-  }, [isTranscribing, isListening]);
+  }, [isTranscribing, isListening, startRecording, stopRecording]);
 
   useEffect(() => {
     const mode = searchParams.get('mode');

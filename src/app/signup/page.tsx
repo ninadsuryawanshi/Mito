@@ -8,7 +8,7 @@ import { Button, Input } from '@/components/ui';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
-  show: (d: number) => ({ opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 24, delay: d } }),
+  show: (d: number) => ({ opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 280, damping: 24, delay: d } }),
 };
 
 export default function SignupPage() {
