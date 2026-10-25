@@ -157,10 +157,10 @@ export interface MoodLog {
 }
 
 export const MOOD_MAP = {
-  1: { emoji: '😴', label: 'Sluggish' },
-  2: { emoji: '😐', label: 'Neutral' },
-  3: { emoji: '💪', label: 'Energetic' },
-  4: { emoji: '🤢', label: 'Unwell' },
+  1: { icon: 'battery-low', label: 'Sluggish' },
+  2: { icon: 'circle', label: 'Neutral' },
+  3: { icon: 'activity', label: 'Energetic' },
+  4: { icon: 'frown', label: 'Unwell' },
 } as const;
 
 // ─── Daily Insight ───────────────────────────────────────────────────────────
