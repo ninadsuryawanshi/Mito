@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
+import { ArrowLeft, Camera, Check, Mic, Sparkles, Zap } from 'lucide-react';
 import { AIMealAnalysis } from '@/types';
 import { Button, Textarea, NutrientBox, MonoLabel, Spinner, AnimatedTypewriterPrompt } from '@/components/ui';
 import { useToast } from '@/components/ui/ToastContext';
@@ -67,6 +68,7 @@ function LogContent() {
   const [recentMeals, setRecentMeals] = useState<any[]>([]);
   const [reusedFromLogId, setReusedFromLogId] = useState<string | null>(null);
   const [inputMethod, setInputMethod] = useState<'text' | 'photo' | 'quick_reuse'>('text');
+  const [showAllRecent, setShowAllRecent] = useState(false);
 
   // Date + Time — default to today/now
   const [logDate, setLogDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -143,7 +145,7 @@ function LogContent() {
           const data = await res.json();
           if (res.ok && data.transcript) {
             setDescription((prev) => (prev ? `${prev.trim()} ${data.transcript.trim()}` : data.transcript.trim()));
-            toast('✨ Voice transcribed!', 'success');
+            toast('Voice transcribed.', 'success');
           } else {
             toast(data.error || 'Transcription failed', 'error');
           }
@@ -158,7 +160,7 @@ function LogContent() {
 
       mediaRecorder.start();
       setIsListening(true);
-      toast('🎙️ Recording... Tap button when finished speaking', 'info');
+      toast('Recording started. Tap button when finished speaking.', 'info');
     } catch (e: any) {
       console.error('Microphone access error:', e);
       toast('Microphone access denied or unavailable.', 'error');
@@ -237,6 +239,11 @@ function LogContent() {
     return new Date(`${logDate}T${logTime}:00`).toISOString();
   }
 
+  const selectedDateLabel = dateEdited
+    ? format(new Date(logDate + 'T00:00:00'), 'EEE, d MMM')
+    : 'Today';
+  const selectedTimeLabel = format(new Date(`2000-01-01T${logTime}`), 'h:mm a');
+
   async function handleAnalyze() {
     if (!description.trim() && !photoBase64) {
       setError('Please describe what you ate or upload a photo.');
@@ -289,7 +296,7 @@ function LogContent() {
         }),
       });
       if (!res.ok) throw new Error('Save failed');
-      toast('Meal logged ✓', 'success');
+      toast('Meal logged.', 'success');
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message);
@@ -358,177 +365,147 @@ function LogContent() {
 
 
   if (step === 'saving') return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+    <div className="min-h-dvh flex flex-col items-center justify-center gap-4" style={{ background: 'var(--bg)' }}>
       <Spinner size="lg" />
-      <p className="font-mono text-[var(--muted)] text-xs uppercase tracking-widest">Saving...</p>
+      <p className="text-[13px] uppercase tracking-widest" style={{ color: 'var(--muted)', fontFamily: 'var(--font-body)' }}>Saving...</p>
     </div>
   );
 
   if (step === 'analyzing') return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6 px-6 max-w-md mx-auto animate-fade-up">
-      {/* Photo Preview Thumbnail if photo used */}
+    <div className="min-h-dvh flex flex-col items-center justify-center gap-6 px-6 max-w-md mx-auto" style={{ background: 'var(--bg)' }}>
       {photoPreview ? (
-        <div className="relative w-28 h-28 rounded-2xl overflow-hidden border-2 border-[var(--accent)] shadow-[0_0_30px_rgba(244,162,77,0.35)] animate-pulse">
+        <div className="relative w-28 h-28 rounded-2xl overflow-hidden" style={{ boxShadow: 'var(--gold-shadow)' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={photoPreview} alt="analyzing photo" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0908]/80 via-transparent to-transparent flex items-end justify-center pb-2">
-            <span className="text-[10px] font-mono font-bold text-[var(--accent)] uppercase tracking-wider">📷 Scanning</span>
+          <div className="absolute inset-0 flex items-end justify-center pb-2"
+            style={{ background: 'linear-gradient(to top, rgba(28,26,20,0.6), transparent)' }}>
+            <span className="text-[10px] font-semibold uppercase tracking-wider inline-flex items-center gap-1" style={{ color: 'var(--gold-3)' }}><Camera className="w-3 h-3" />Scanning</span>
           </div>
         </div>
       ) : (
-        /* Sleek Minimalist Concentric Glowing Orb for text logs */
         <div className="relative flex items-center justify-center w-24 h-24">
-          <div className="absolute inset-0 rounded-full bg-[rgba(244,162,77,0.15)] animate-ping opacity-30" />
-          <div className="absolute inset-2 rounded-full bg-[rgba(244,162,77,0.2)] animate-pulse" />
-          <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-[#F4A24D] to-[#d47b25] shadow-[0_0_30px_rgba(244,162,77,0.4)] flex items-center justify-center">
-            <div className="w-4 h-4 rounded-full bg-[#0a0908] animate-pulse" />
+          <div className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ background: 'var(--gold-glow)' }} />
+          <div className="absolute inset-2 rounded-full animate-pulse" style={{ background: 'var(--gold-tint)' }} />
+          <div className="relative w-12 h-12 rounded-full flex items-center justify-center gold-btn" style={{ borderRadius: '50%', padding: 0 }}>
+            <Sparkles className="w-4 h-4" />
           </div>
         </div>
       )}
-
-      {/* Dynamic Step Text */}
       <div className="text-center flex flex-col items-center gap-2">
-        <p className="font-mono text-xs text-[var(--accent)] uppercase tracking-widest font-semibold">
+        <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'var(--gold-2)', fontFamily: 'var(--font-body)' }}>
           Step {analyzingStage + 1} of {currentStages.length}
         </p>
-        <p key={analyzingStage} className="text-base font-medium text-[var(--text)] transition-all animate-fade-up" style={{ fontFamily: 'Syne, serif' }}>
+        <p key={analyzingStage} className="text-[16px] font-bold anim-fade-up" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
           {currentStages[analyzingStage]}
         </p>
       </div>
-
-      {/* Minimalist Segmented Progress Bar */}
-      <div className="w-full max-w-xs flex gap-1.5 mt-1">
+      <div className="w-full max-w-xs flex gap-1.5">
         {currentStages.map((_, i) => (
-          <div
-            key={i}
-            className={`h-1 flex-1 rounded-full transition-all duration-500 ${
-              i <= analyzingStage ? 'bg-[var(--accent)] shadow-[0_0_8px_var(--accent)]' : 'bg-[var(--border)]'
-            }`}
-          />
+          <div key={i} className="h-1.5 flex-1 rounded-full transition-all duration-500"
+            style={{ background: i <= analyzingStage ? 'var(--gold-gradient)' : 'var(--surface3)' }} />
         ))}
       </div>
-
-      {/* User's Input Summary */}
       {description && (
-        <p className="text-xs text-[var(--muted)] text-center max-w-xs italic line-clamp-2 mt-2">
-          {description}
+        <p className="text-[13px] italic text-center max-w-xs line-clamp-2" style={{ color: 'var(--muted)' }}>
+          "{description}"
         </p>
       )}
     </div>
   );
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
+    <div className="max-w-2xl mx-auto px-4 py-6 min-h-dvh pb-28" style={{ background: 'var(--bg)' }}>
 
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8 animate-fade-up">
+      <div className="flex items-center gap-3 mb-7 anim-fade-up">
         <button onClick={() => step === 'review' ? setStep('input') : router.back()}
-          className="w-9 h-9 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] transition-colors">
-          ←
+          className="w-9 h-9 rounded-full flex items-center justify-center border-none cursor-pointer transition-all"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--muted)', fontFamily: 'var(--font-body)' }}>
+          <ArrowLeft className="w-4 h-4" />
         </button>
-        <h1 className="text-xl font-bold" style={{ fontFamily: 'Syne, serif' }}>
+        <h1 className="text-[22px] font-extrabold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
           {step === 'review' ? 'Review & Edit' : 'Log a Meal'}
         </h1>
       </div>
 
       {/* ── INPUT ── */}
       {step === 'input' && (
-        <div className="flex flex-col gap-5 animate-fade-up">
+        <div className="flex flex-col gap-5 anim-fade-up min-h-[calc(100dvh-132px)]">
 
-          {/* Photo */}
-          <div>
-            <MonoLabel className="mb-2 block">Photo (optional)</MonoLabel>
-            <input ref={fileRef} type="file" accept="image/*" capture="environment"
-              onChange={handlePhoto} className="hidden" />
-            <button onClick={() => fileRef.current?.click()}
-              className="w-full h-28 border-2 border-dashed border-[var(--border)] rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-[var(--accent)] transition-colors group overflow-hidden relative">
-              {photoPreview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={photoPreview} alt="meal" className="absolute inset-0 w-full h-full object-cover" />
-              ) : (
-                <>
-                  <span className="text-2xl text-[var(--muted)] group-hover:text-[var(--accent)] transition-colors">📷</span>
-                  <span className="text-xs font-mono text-[var(--muted)] uppercase tracking-widest">Tap to photograph meal</span>
-                </>
-              )}
-            </button>
-            {photoPreview && (
-              <button onClick={() => { setPhotoPreview(null); setPhotoBase64(null); }}
-                className="text-xs font-mono text-[var(--red)] mt-2">Remove photo</button>
-            )}
-          </div>
-
-          {/* Description */}
+          {/* ── Big Text Input (hero) ── */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <MonoLabel>What did you eat?</MonoLabel>
               {!description && (
-                <div className="hidden sm:block text-xs font-mono">
+                <div className="hidden sm:block">
                   <AnimatedTypewriterPrompt prefix="Try:" />
                 </div>
               )}
             </div>
-            <div className={`moving-gradient-border-wrapper relative ${isListening ? 'recording' : ''}`}>
+            <div className="mito-card p-4 relative" style={{
+              ...(isListening ? { border: '2px solid var(--red)', boxShadow: '0 0 0 4px rgba(224,92,92,0.12)' } : {}),
+            }}>
               <textarea
                 ref={textareaRef}
                 autoFocus
                 placeholder={
-                  isTranscribing
-                    ? "Transcribing voice note with AI Whisper..."
-                    : isListening
-                      ? "Recording... Tap button below when done..."
-                      : "Casually, What? How Much? Where?...Thats It!"
+                  isTranscribing ? 'Transcribing voice with AI Whisper...'
+                  : isListening ? 'Recording... tap button when done...'
+                  : 'What did you eat?'
                 }
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                rows={4}
-                className="w-full bg-[#12100e] rounded-[1.2rem] p-4 pb-12 text-sm text-[var(--text)] placeholder:text-[var(--muted)] outline-none resize-none block border-0"
+                rows={5}
+                className="w-full bg-transparent outline-none resize-none text-[15px] pb-10 border-0"
+                style={{ color: 'var(--text)', fontFamily: 'var(--font-body)' }}
               />
-
-              {/* Embedded Glassmorphic Mic Button + Active Waveform */}
-              <button
-                type="button"
-                onClick={toggleListening}
-                disabled={isTranscribing}
-                className={`absolute bottom-3 right-3 flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded-full border backdrop-blur-md transition-all z-10 ${isTranscribing
-                  ? 'bg-[rgba(244,162,77,0.25)] border-[var(--accent)] text-[var(--accent)] animate-pulse shadow-[0_0_16px_rgba(244,162,77,0.5)] cursor-wait'
-                  : isListening
-                    ? 'bg-[rgba(255,77,77,0.25)] border-[var(--red)] text-[var(--red)] shadow-[0_0_16px_rgba(255,77,77,0.5)]'
-                    : 'bg-[#1a1714]/85 border-[var(--border)] text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] shadow-lg'
-                  }`}
-              >
-                {isTranscribing ? (
-                  <>
-                    <span className="text-xs animate-spin">⚡</span>
-                    <span className="text-[10px] uppercase tracking-wider font-bold">Transcribing...</span>
-                  </>
-                ) : isListening ? (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-[var(--red)] animate-ping" />
-                    <div className="flex items-center gap-0.5 h-3">
-                      <span className="waveform-bar waveform-bar-1" />
-                      <span className="waveform-bar waveform-bar-2" />
-                      <span className="waveform-bar waveform-bar-3" />
-                      <span className="waveform-bar waveform-bar-4" />
-                    </div>
-                    <span className="text-[10px] uppercase tracking-wider font-bold">Stop & Send</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-sm">🎙️</span>
-                    <span className="text-[10px] uppercase tracking-wider">Voice</span>
-                  </>
+              {/* Action icons inside textarea */}
+              <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                <input ref={fileRef} type="file" accept="image/*" capture="environment"
+                  onChange={handlePhoto} className="hidden" />
+                {photoPreview && (
+                  <div className="relative w-8 h-8 rounded-xl overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={photoPreview} alt="preview" className="w-full h-full object-cover" />
+                    <button onClick={() => { setPhotoPreview(null); setPhotoBase64(null); }}
+                      className="absolute inset-0 flex items-center justify-center text-white text-xs border-none bg-black/40 cursor-pointer">×</button>
+                  </div>
                 )}
-              </button>
+                <button onClick={() => fileRef.current?.click()} title="Add photo"
+                  className="w-8 h-8 rounded-xl flex items-center justify-center border-none cursor-pointer transition-all"
+                  style={{ background: 'var(--surface2)', color: 'var(--muted)' }}><Camera className="w-4 h-4" /></button>
+                <button type="button" onClick={toggleListening} disabled={isTranscribing}
+                  title={isListening ? 'Stop recording' : 'Voice log'}
+                  className="w-8 h-8 rounded-xl flex items-center justify-center border-none cursor-pointer transition-all"
+                  style={{
+                    background: isListening ? 'var(--red-tint)' : isTranscribing ? 'var(--gold-tint)' : 'var(--surface2)',
+                    color: isListening ? 'var(--red)' : isTranscribing ? 'var(--gold-2)' : 'var(--muted)',
+                  }}>
+                  {isListening ? (
+                    <span className="w-2.5 h-2.5 rounded-full animate-ping" style={{ background: 'var(--red)' }} />
+                  ) : isTranscribing ? (
+                    <Zap className="w-4 h-4 anim-spin" />
+                  ) : <Mic className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Quick re-log recent meals */}
           {recentMeals.length > 0 && (
             <div>
-              <MonoLabel className="mb-2 block">Re-log Recent Meal</MonoLabel>
+              <div className="flex items-center justify-between mb-2">
+                <MonoLabel className="block">Re-log Recent Meal</MonoLabel>
+                <button
+                  onClick={() => setShowAllRecent(prev => !prev)}
+                  className="text-[11px] font-semibold"
+                  style={{ color: 'var(--gold-1)', fontFamily: 'var(--font-body)' }}
+                >
+                  {showAllRecent ? 'Show less' : 'See all'}
+                </button>
+              </div>
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-                {recentMeals.slice(0, 6).map((meal: any) => {
+                {recentMeals.slice(0, showAllRecent ? 8 : 3).map((meal: any) => {
                   const names = meal.items?.map((i: any) => i.food_entity?.name).filter(Boolean).join(', ') || 'Meal';
                   return (
                     <button
@@ -549,117 +526,126 @@ function LogContent() {
             </div>
           )}
 
-          {/* Meal type */}
-          <div>
-            <MonoLabel className="mb-2 block">Meal Type</MonoLabel>
-            <div className="grid grid-cols-4 gap-2">
+          {/* Meal metadata summary + quick edit */}
+          <div className="mito-card p-4">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <MonoLabel>Meal details</MonoLabel>
+              <span className="text-[11px]" style={{ color: 'var(--muted)' }}>Tap to edit</span>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-3">
               {MEAL_TYPES.map(t => (
                 <button key={t} onClick={() => setMealType(mealType === t ? '' : t)}
-                  className={`py-2 rounded-xl text-xs font-mono uppercase tracking-widest border transition-all
-                    ${mealType === t ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-glow)]' : 'border-[var(--border)] text-[var(--muted)]'}`}>
+                  className="py-2 px-3 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all"
+                  style={mealType === t
+                    ? { borderColor: 'rgba(232,160,48,0.5)', color: 'var(--gold-1)', background: 'var(--gold-tint)' }
+                    : { borderColor: 'var(--border)', color: 'var(--muted)' }}>
                   {t}
                 </button>
               ))}
             </div>
-          </div>
 
-          {/* ── Date & Time picker ── */}
-          <div className="flex flex-col gap-3">
-            <MonoLabel>When did you eat?</MonoLabel>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => { setShowDatePicker(!showDatePicker); setShowTimePicker(false); }}
+                className="text-left rounded-xl border px-3 py-2.5 transition-all"
+                style={dateEdited
+                  ? { borderColor: 'rgba(232,160,48,0.5)', background: 'var(--gold-tint)' }
+                  : { borderColor: 'var(--border)', background: 'var(--surface)' }}
+              >
+                <p className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Date</p>
+                <p className="text-[13px] font-semibold" style={{ color: 'var(--text)' }}>{selectedDateLabel}</p>
+              </button>
 
-            {/* Date row */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-mono text-[var(--muted)] uppercase tracking-widest">Date</span>
-                <button onClick={() => { setShowDatePicker(!showDatePicker); setShowTimePicker(false); }}
-                  className={`text-xs font-mono px-3 py-1.5 rounded-lg border transition-all
-                    ${dateEdited ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-glow)]' : 'border-[var(--border)] text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)]'}`}>
-                  {dateEdited ? `✓ ${format(new Date(logDate + 'T00:00:00'), 'd MMM yyyy')}` : `Today · ${format(new Date(), 'd MMM')} ↓`}
-                </button>
+              <button
+                onClick={() => { setShowTimePicker(!showTimePicker); setShowDatePicker(false); }}
+                className="text-left rounded-xl border px-3 py-2.5 transition-all"
+                style={timeEdited
+                  ? { borderColor: 'rgba(232,160,48,0.5)', background: 'var(--gold-tint)' }
+                  : { borderColor: 'var(--border)', background: 'var(--surface)' }}
+              >
+                <p className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Time</p>
+                <p className="text-[13px] font-semibold" style={{ color: 'var(--text)' }}>{selectedTimeLabel}</p>
+              </button>
+            </div>
+
+            {showDatePicker && (
+              <div className="bg-[var(--surface)] border rounded-xl p-4 mt-3 animate-scale-in" style={{ borderColor: 'rgba(232,160,48,0.35)' }}>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {makeDatePresets().map(preset => (
+                    <button key={preset.value}
+                      onClick={() => {
+                        setLogDate(preset.value);
+                        setDateEdited(preset.value !== format(new Date(), 'yyyy-MM-dd'));
+                        setShowDatePicker(false);
+                      }}
+                      className="px-3 py-1.5 rounded-lg text-xs border transition-all"
+                      style={logDate === preset.value
+                        ? { borderColor: 'rgba(232,160,48,0.55)', color: 'var(--gold-1)', background: 'var(--gold-tint)' }
+                        : { borderColor: 'var(--border)', color: 'var(--muted)' }}>
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-3">
+                  <MonoLabel>Custom:</MonoLabel>
+                  <input
+                    type="date"
+                    value={logDate}
+                    max={format(new Date(), 'yyyy-MM-dd')}
+                    onChange={e => {
+                      setLogDate(e.target.value);
+                      setDateEdited(e.target.value !== format(new Date(), 'yyyy-MM-dd'));
+                    }}
+                    className="flex-1 bg-[var(--surface2)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] outline-none"
+                  />
+                  <button onClick={() => setShowDatePicker(false)}
+                    className="text-xs font-semibold px-3 py-2 rounded-lg"
+                    style={{ color: 'var(--gold-1)', border: '1px solid rgba(232,160,48,0.45)' }}>
+                    Done
+                  </button>
+                </div>
               </div>
-              {showDatePicker && (
-                <div className="bg-[var(--surface)] border border-[var(--accent)] rounded-xl p-4 animate-scale-in">
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {makeDatePresets().map(preset => (
-                      <button key={preset.value}
+            )}
+
+            {showTimePicker && (
+              <div className="bg-[var(--surface)] border rounded-xl p-4 mt-3 animate-scale-in" style={{ borderColor: 'rgba(232,160,48,0.35)' }}>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {TIME_PRESETS.map(preset => {
+                    const val = preset.getValue();
+                    const isNow = preset.label === 'Now';
+                    return (
+                      <button key={preset.label}
                         onClick={() => {
-                          setLogDate(preset.value);
-                          setDateEdited(preset.value !== format(new Date(), 'yyyy-MM-dd'));
-                          setShowDatePicker(false);
+                          setLogTime(val);
+                          setTimeEdited(!isNow);
+                          setShowTimePicker(false);
                         }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-mono border transition-all
-                          ${logDate === preset.value ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-glow)]' : 'border-[var(--border)] text-[var(--muted)] hover:border-[var(--accent)]'}`}>
+                        className="px-3 py-1.5 rounded-lg text-xs border transition-all"
+                        style={logTime === val
+                          ? { borderColor: 'rgba(232,160,48,0.55)', color: 'var(--gold-1)', background: 'var(--gold-tint)' }
+                          : { borderColor: 'var(--border)', color: 'var(--muted)' }}>
                         {preset.label}
                       </button>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MonoLabel>Custom:</MonoLabel>
-                    <input
-                      type="date"
-                      value={logDate}
-                      max={format(new Date(), 'yyyy-MM-dd')}
-                      onChange={e => {
-                        setLogDate(e.target.value);
-                        setDateEdited(e.target.value !== format(new Date(), 'yyyy-MM-dd'));
-                      }}
-                      className="flex-1 bg-[var(--surface2)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] font-mono"
-                    />
-                    <button onClick={() => setShowDatePicker(false)}
-                      className="text-xs font-mono text-[var(--accent)] border border-[var(--accent)] px-3 py-2 rounded-lg hover:bg-[var(--accent-glow)]">
-                      Done
-                    </button>
-                  </div>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
-
-            {/* Time row */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-mono text-[var(--muted)] uppercase tracking-widest">Time</span>
-                <button onClick={() => { setShowTimePicker(!showTimePicker); setShowDatePicker(false); }}
-                  className={`text-xs font-mono px-3 py-1.5 rounded-lg border transition-all
-                    ${timeEdited ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-glow)]' : 'border-[var(--border)] text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)]'}`}>
-                  {timeEdited ? `✓ ${format(new Date(`2000-01-01T${logTime}`), 'h:mm a')}` : `Now · ${format(new Date(), 'h:mm a')} ↓`}
-                </button>
+                <div className="flex items-center gap-3">
+                  <MonoLabel>Custom:</MonoLabel>
+                  <input
+                    type="time"
+                    value={logTime}
+                    onChange={e => { setLogTime(e.target.value); setTimeEdited(true); }}
+                    className="flex-1 bg-[var(--surface2)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] outline-none"
+                  />
+                  <button onClick={() => setShowTimePicker(false)}
+                    className="text-xs font-semibold px-3 py-2 rounded-lg"
+                    style={{ color: 'var(--gold-1)', border: '1px solid rgba(232,160,48,0.45)' }}>
+                    Done
+                  </button>
+                </div>
               </div>
-              {showTimePicker && (
-                <div className="bg-[var(--surface)] border border-[var(--accent)] rounded-xl p-4 animate-scale-in">
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {TIME_PRESETS.map(preset => {
-                      const val = preset.getValue();
-                      const isNow = preset.label === 'Now';
-                      return (
-                        <button key={preset.label}
-                          onClick={() => {
-                            setLogTime(val);
-                            setTimeEdited(!isNow);
-                            setShowTimePicker(false);
-                          }}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-mono border transition-all
-                            ${logTime === val ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-glow)]' : 'border-[var(--border)] text-[var(--muted)] hover:border-[var(--accent)]'}`}>
-                          {preset.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MonoLabel>Custom:</MonoLabel>
-                    <input
-                      type="time"
-                      value={logTime}
-                      onChange={e => { setLogTime(e.target.value); setTimeEdited(true); }}
-                      className="flex-1 bg-[var(--surface2)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] font-mono"
-                    />
-                    <button onClick={() => setShowTimePicker(false)}
-                      className="text-xs font-mono text-[var(--accent)] border border-[var(--accent)] px-3 py-2 rounded-lg hover:bg-[var(--accent-glow)]">
-                      Done
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
           {error && (
@@ -668,16 +654,13 @@ function LogContent() {
             </div>
           )}
 
-          <Button size="lg" onClick={handleAnalyze} className="font-mono tracking-wide"
-            disabled={!description.trim() && !photoBase64}>
-            ✦ Analyze Nutrition
-          </Button>
+          <div className="mt-auto pt-2" />
         </div>
       )}
 
       {/* ── REVIEW ── */}
       {step === 'review' && analysis && (
-        <div className="flex flex-col gap-5 animate-fade-up">
+        <div className="flex flex-col gap-5 anim-fade-up">
 
           {analysis.ai_note && (
             <div className="bg-[rgba(91,184,212,0.08)] border border-[rgba(91,184,212,0.2)] rounded-xl px-4 py-3">
@@ -793,12 +776,27 @@ function LogContent() {
             </div>
           )}
 
-          <Button size="lg" onClick={handleSave} className="font-mono tracking-wide">
-            ✓ Add to Log
+          <Button variant="gold" size="lg" onClick={handleSave}>
+            <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4" />Add to Log</span>
           </Button>
-          <Button variant="ghost" size="md" onClick={() => setStep('input')} className="text-xs font-mono">
-            ← Edit description
+          <Button variant="ghost" size="md" onClick={() => setStep('input')}>
+            <span className="inline-flex items-center gap-1.5"><ArrowLeft className="w-4 h-4" />Edit description</span>
           </Button>
+        </div>
+      )}
+
+      {step === 'input' && (
+        <div className="fixed left-0 right-0 bottom-0 z-20 px-4 pb-4 pt-3"
+          style={{
+            background: 'linear-gradient(180deg, rgba(250,250,247,0) 0%, rgba(250,250,247,0.94) 36%, rgba(250,250,247,0.98) 100%)',
+            backdropFilter: 'blur(6px)',
+          }}>
+          <div className="max-w-2xl mx-auto">
+            <Button variant="gold" size="lg" onClick={handleAnalyze}
+              disabled={!description.trim() && !photoBase64}>
+              <span className="inline-flex items-center gap-1.5"><Sparkles className="w-4 h-4" />Analyze Nutrition</span>
+            </Button>
+          </div>
         </div>
       )}
     </div>
