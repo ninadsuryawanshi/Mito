@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient } from '@/lib/db/server';
-import BottomNav from '@/components/ui/BottomNav';
-import { PWAPrompt } from '@/components/ui';
+import { BottomNav, PWAPrompt } from '@/components/ui';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createServerSupabaseClient();
