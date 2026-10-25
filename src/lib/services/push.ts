@@ -73,6 +73,9 @@ export async function sendPushNotification(
       body: payload.body,
       url: payload.url || '/log',
       tag: payload.tag || 'mito-push',
+      icon: '/icons/icon-192.png',   // Android: notification icon (must be explicit)
+      badge: '/icons/badge-96.png',  // Android: monochrome status bar icon
+      vibrate: [100, 50, 100],
     });
 
     await webpush.sendNotification(subscription, pushPayload);
