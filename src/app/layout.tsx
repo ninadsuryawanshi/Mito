@@ -1,25 +1,19 @@
 import type { Metadata, Viewport } from 'next';
-import { Syne, DM_Sans, DM_Mono } from 'next/font/google';
+import { Syne, Manrope } from 'next/font/google';
 import './globals.css';
 
 const syne = Syne({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
+  style: ['normal'],
   variable: '--font-syne',
   display: 'swap',
 });
 
-const dmSans = DM_Sans({
+const manrope = Manrope({
   subsets: ['latin'],
-  weight: ['300', '400', '500'],
-  variable: '--font-dm-sans',
-  display: 'swap',
-});
-
-const dmMono = DM_Mono({
-  subsets: ['latin'],
-  weight: ['300', '400', '500'],
-  variable: '--font-dm-mono',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-manrope',
   display: 'swap',
 });
 
@@ -27,14 +21,14 @@ export const metadata: Metadata = {
   title: 'Mito — Powerhouse of You',
   description: 'Your personal food mirror. Know what you eat, understand how it affects you.',
   manifest: '/manifest.json',
-  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Mito' },
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Mito' },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#0a0908',
+  themeColor: '#FAFAF7',
 };
 
 import { ToastProvider } from '@/components/ui/ToastContext';
@@ -42,7 +36,7 @@ import { AuthRecoveryRedirect } from '@/components/auth/AuthRecoveryRedirect';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${syne.variable} ${dmSans.variable} ${dmMono.variable}`}>
+    <html lang="en" className={`${syne.variable} ${manrope.variable}`}>
       <body>
         <AuthRecoveryRedirect />
         <ToastProvider>{children}</ToastProvider>
@@ -50,5 +44,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
-
