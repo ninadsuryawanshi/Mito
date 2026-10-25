@@ -1,65 +1,100 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogoMark } from '@/components/ui';
+import { motion } from 'framer-motion';
 
-const NAV = [
-  { href: '/dashboard', icon: '◎', label: 'Mirror' },
-  { href: '/log',       icon: '+', label: 'Log',    primary: true },
-  { href: '/rules',     icon: '⊘', label: 'Rules' },
+const NAV_ITEMS = [
+  {
+    href: '/dashboard',
+    label: 'Home',
+    icon: (active: boolean) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+        <path d="M9 21V12h6v9"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/log',
+    label: 'Log',
+    icon: (_active: boolean) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="16"/>
+        <line x1="8" y1="12" x2="16" y2="12"/>
+      </svg>
+    ),
+    isCta: true,
+  },
+  {
+    href: '/rules',
+    label: 'Rules',
+    icon: (active: boolean) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3l7 3v5c0 4.2-2.9 8-7 9-4.1-1-7-4.8-7-9V6l7-3z"/>
+        <path d="M9.5 12.5l1.8 1.8 3.5-3.5"/>
+      </svg>
+    ),
+  },
 ];
 
-export default function BottomNav() {
-  const path = usePathname();
+export function BottomNav() {
+  const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[var(--surface)] border-t border-[var(--border)] pb-safe z-50 md:top-0 md:bottom-0 md:right-auto md:w-24 md:border-t-0 md:border-r md:flex md:flex-col">
+    <nav
+      className="glass-nav fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center px-3 py-2 gap-1"
+      aria-label="Main navigation"
+    >
+      {NAV_ITEMS.map((item) => {
+        const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
 
-      {/* Desktop logo at top */}
-      <div className="hidden md:flex flex-col items-center pt-6 pb-4 border-b border-[var(--border)]">
-        <LogoMark size={36} />
-      </div>
-
-      {/* Nav items */}
-      <div className="flex items-center justify-around max-w-lg mx-auto w-full px-4 py-2 md:flex-col md:flex-1 md:justify-center md:gap-6 md:px-0 md:py-0">
-        {NAV.map(item => {
-          const active = path === item.href;
-          if (item.primary) {
-            return (
-              <Link key={item.href} href={item.href}
-                className="flex flex-col items-center gap-1 -mt-5 md:mt-0">
-                <div className="w-14 h-14 rounded-full bg-[var(--accent)] flex items-center justify-center shadow-[0_0_20px_var(--accent-glow)] transition-transform active:scale-95 md:w-12 md:h-12">
-                  <span className="text-2xl text-[#0a0908] font-bold leading-none md:text-xl">{item.icon}</span>
-                </div>
-                <span className="text-[9px] font-mono text-[var(--muted)] uppercase tracking-widest">{item.label}</span>
-              </Link>
-            );
-          }
+        if (item.isCta) {
           return (
-            <Link key={item.href} href={item.href}
-              id={item.href === '/rules' ? 'nav-rules' : undefined}
-              className="flex flex-col items-center gap-1 py-1 px-3 transition-all active:scale-95 md:px-0 md:w-full md:py-2 md:hover:bg-[var(--surface2)] md:rounded-lg">
-              <span className={`text-xl transition-all ${active ? 'text-[var(--accent)]' : 'text-[var(--muted)]'}`}>
-                {item.icon}
-              </span>
-              <span className={`text-[9px] font-mono uppercase tracking-widest ${active ? 'text-[var(--accent)]' : 'text-[var(--muted)]'}`}>
-                {item.label}
-              </span>
+            <Link key={item.href} href={item.href} aria-label="Log a meal">
+              <motion.div
+                whileTap={{ scale: 0.90 }}
+                whileHover={{ scale: 1.07 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                className="gold-btn mx-2 flex items-center justify-center text-[var(--text)]"
+                style={{ width: 52, height: 52, borderRadius: '50%', padding: 0 }}
+              >
+                {item.icon(false)}
+              </motion.div>
             </Link>
           );
-        })}
-      </div>
+        }
 
-      {/* Desktop settings link at bottom */}
-      <div id="nav-settings" className="hidden md:flex flex-col items-center pb-6 pt-4 border-t border-[var(--border)] gap-3">
-        <Link href="/settings"
-          className="flex flex-col items-center gap-1 text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
-          <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-          </svg>
-          <span className="text-[8px] font-mono uppercase tracking-widest">You</span>
-        </Link>
-      </div>
+        return (
+          <Link key={item.href} href={item.href} aria-label={item.label}>
+            <motion.div
+              whileTap={{ scale: 0.88 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              className="relative flex flex-col items-center gap-0.5 px-5 py-2 rounded-full"
+              style={{
+                color: isActive ? 'var(--gold-2)' : 'var(--muted)',
+                minWidth: 56,
+              }}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="nav-active-bg"
+                  className="absolute inset-0 rounded-full"
+                  style={{ background: 'var(--gold-tint)' }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                />
+              )}
+              <span className="relative z-10">{item.icon(isActive)}</span>
+              <span
+                className="relative z-10 text-[10px] font-semibold leading-none"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                {item.label}
+              </span>
+            </motion.div>
+          </Link>
+        );
+      })}
     </nav>
   );
 }
