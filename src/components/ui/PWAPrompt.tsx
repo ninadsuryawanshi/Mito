@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Button, LogoMark } from '@/components/ui';
+import { Button } from './index';
+import { LogoMark } from './LogoMark';
 
 export function PWAPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
