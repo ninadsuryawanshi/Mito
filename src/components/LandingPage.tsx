@@ -2,10 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { LogoMark, AnimatedTypewriterPrompt } from '@/components/ui';
+import { AnimatedTypewriterPrompt } from '@/components/ui';
+import { motion } from 'framer-motion';
 
-
-/* ─── Bento item types ─────────────────────────────────── */
 type BentoItem =
   | { kind: 'wide'; file: string; label: string; sub: string; accent: string }
   | { kind: 'pair'; items: { file: string; label: string; sub: string; accent: string }[] };
@@ -16,7 +15,7 @@ const BENTO: BentoItem[] = [
     file: '/screenshots/voice-log.png',
     label: 'Just say it.',
     sub: 'Talk, type, or snap a photo. Done in seconds.',
-    accent: 'var(--accent)',
+    accent: 'var(--gold-2)',
   },
   {
     kind: 'pair',
@@ -24,13 +23,13 @@ const BENTO: BentoItem[] = [
       {
         file: '/screenshots/progress.png',
         label: 'See where you stand.',
-        sub: 'Calories & protein, at a glance.',
+        sub: 'Calories and protein, at a glance.',
         accent: 'var(--blue)',
       },
       {
         file: '/screenshots/nutrients.png',
         label: 'The full picture.',
-        sub: 'Fiber, sugar, sodium — all tracked.',
+        sub: 'Fiber, sugar, sodium - all tracked.',
         accent: 'var(--green)',
       },
     ],
@@ -39,8 +38,8 @@ const BENTO: BentoItem[] = [
     kind: 'wide',
     file: '/screenshots/rules.png',
     label: 'Your rules. Your call.',
-    sub: 'Set them once. Mito watches quietly — no scolding.',
-    accent: 'var(--accent)',
+    sub: 'Set them once. Mito watches quietly with no scolding.',
+    accent: 'var(--gold-2)',
   },
   {
     kind: 'wide',
@@ -51,7 +50,6 @@ const BENTO: BentoItem[] = [
   },
 ];
 
-/* ─── Per-row animated bento card ──────────────────────── */
 type AnimDir = 'up' | 'left' | 'right';
 
 function useBentoReveal() {
@@ -62,6 +60,7 @@ function useBentoReveal() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !revealed) {
@@ -72,6 +71,7 @@ function useBentoReveal() {
       },
       { threshold: 0.15 }
     );
+
     obs.observe(el);
     return () => obs.disconnect();
   }, [revealed]);
@@ -80,9 +80,17 @@ function useBentoReveal() {
 }
 
 function ParallaxImage({
-  src, alt, width, height, priority,
+  src,
+  alt,
+  width,
+  height,
+  priority,
 }: {
-  src: string; alt: string; width: number; height: number; priority?: boolean;
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  priority?: boolean;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -92,13 +100,14 @@ function ParallaxImage({
       const wrap = wrapRef.current;
       const img = imgRef.current;
       if (!wrap || !img) return;
+
       const rect = wrap.getBoundingClientRect();
       const viewH = window.innerHeight;
-      // how far the card centre is from viewport centre, normalised -1..1
-      const progress = ((rect.top + rect.height / 2) - viewH / 2) / viewH;
-      const shift = progress * 18; // max 18px parallax
+      const progress = (rect.top + rect.height / 2 - viewH / 2) / viewH;
+      const shift = progress * 18;
       img.style.transform = `translateY(${shift}px)`;
     };
+
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
@@ -122,16 +131,18 @@ function ParallaxImage({
 }
 
 function WideCard({
-  item, dir = 'up', delay = 0,
+  item,
+  dir = 'up',
+  delay = 0,
 }: {
-  item: Extract<BentoItem, { kind: 'wide' }>; dir?: AnimDir; delay?: number;
+  item: Extract<BentoItem, { kind: 'wide' }>;
+  dir?: AnimDir;
+  delay?: number;
 }) {
   const { ref, revealed, glowing } = useBentoReveal();
 
   const hiddenTransform =
-    dir === 'left' ? 'translateX(-32px)' :
-    dir === 'right' ? 'translateX(32px)' :
-    'translateY(28px)';
+    dir === 'left' ? 'translateX(-32px)' : dir === 'right' ? 'translateX(32px)' : 'translateY(28px)';
 
   return (
     <div
@@ -142,7 +153,6 @@ function WideCard({
         transition: `opacity 0.65s cubic-bezier(.22,1,.36,1) ${delay}ms, transform 0.65s cubic-bezier(.22,1,.36,1) ${delay}ms`,
       }}
     >
-      {/* Label */}
       <div
         className="mb-3 px-1"
         style={{
@@ -151,13 +161,14 @@ function WideCard({
           transition: `opacity 0.5s ease ${delay + 150}ms, transform 0.5s ease ${delay + 150}ms`,
         }}
       >
-        <p className="text-base font-bold mb-0.5" style={{ fontFamily: 'Syne, serif', color: item.accent }}>
+        <p className="text-base font-bold mb-0.5" style={{ fontFamily: 'var(--font-display)', color: item.accent }}>
           {item.label}
         </p>
-        <p className="text-xs font-mono text-[var(--muted)]">{item.sub}</p>
+        <p className="text-xs" style={{ color: 'var(--muted)', fontFamily: 'var(--font-body)' }}>
+          {item.sub}
+        </p>
       </div>
 
-      {/* Image frame */}
       <div
         style={{
           borderRadius: '1rem',
@@ -176,12 +187,15 @@ function WideCard({
 }
 
 function PairCard({
-  p, dir, delay = 0,
+  p,
+  dir,
+  delay = 0,
 }: {
-  p: { file: string; label: string; sub: string; accent: string }; dir: AnimDir; delay?: number;
+  p: { file: string; label: string; sub: string; accent: string };
+  dir: AnimDir;
+  delay?: number;
 }) {
   const { ref, revealed, glowing } = useBentoReveal();
-
   const hiddenTransform = dir === 'left' ? 'translateX(-28px)' : 'translateX(28px)';
 
   return (
@@ -194,10 +208,12 @@ function PairCard({
       }}
     >
       <div className="mb-3 px-1">
-        <p className="text-sm font-bold mb-0.5" style={{ fontFamily: 'Syne, serif', color: p.accent }}>
+        <p className="text-sm font-bold mb-0.5" style={{ fontFamily: 'var(--font-display)', color: p.accent }}>
           {p.label}
         </p>
-        <p className="text-xs font-mono text-[var(--muted)] leading-snug hidden sm:block">{p.sub}</p>
+        <p className="text-xs leading-snug hidden sm:block" style={{ color: 'var(--muted)', fontFamily: 'var(--font-body)' }}>
+          {p.sub}
+        </p>
       </div>
       <div
         style={{
@@ -222,20 +238,24 @@ function BentoSection() {
 
   useEffect(() => {
     const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setHeaderVisible(true); },
+      ([entry]) => {
+        if (entry.isIntersecting) setHeaderVisible(true);
+      },
       { threshold: 0.2 }
     );
+
     if (headerRef.current) obs.observe(headerRef.current);
     return () => obs.disconnect();
   }, []);
 
   return (
     <div className="w-full">
-      {/* Section divider */}
       <div
         ref={headerRef}
-        className="flex items-center justify-center gap-3 mb-12 text-xs font-mono uppercase tracking-widest text-[var(--muted2)]"
+        className="flex items-center justify-center gap-3 mb-12 text-xs uppercase tracking-widest"
         style={{
+          color: 'var(--muted2)',
+          fontFamily: 'var(--font-body)',
           opacity: headerVisible ? 1 : 0,
           transform: headerVisible ? 'translateY(0)' : 'translateY(12px)',
           transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -246,18 +266,14 @@ function BentoSection() {
         <span className="w-10 h-px bg-[var(--border)]" />
       </div>
 
-      {/* Grid */}
       <div className="flex flex-col gap-6">
         {BENTO.map((item, rowIdx) => {
           if (item.kind === 'wide') {
-            return (
-              <WideCard key={item.file} item={item} dir="up" delay={0} />
-            );
+            return <WideCard key={item.file} item={item} dir="up" delay={0} />;
           }
 
-          // pair: left slides from left, right from right
           return (
-            <div key={`pair-${rowIdx}`} className="grid grid-cols-2 gap-4">
+            <div key={`pair-${rowIdx}`} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <PairCard p={item.items[0]} dir="left" delay={0} />
               <PairCard p={item.items[1]} dir="right" delay={80} />
             </div>
@@ -268,96 +284,174 @@ function BentoSection() {
   );
 }
 
-
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#0a0908] text-[var(--text)] flex flex-col selection:bg-[var(--accent)] selection:text-[#0a0908] relative overflow-x-hidden">
+    <div className="min-h-dvh flex flex-col relative overflow-x-hidden" style={{ background: 'var(--bg)' }}>
+      <div
+        className="absolute top-0 right-0 w-52 h-52 sm:w-72 sm:h-72 pointer-events-none opacity-[0.06] sm:opacity-[0.07]"
+        style={{
+          backgroundImage: 'url(/food-scatter.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          borderRadius: '0 0 0 100%',
+        }}
+      />
 
-      {/* Ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[450px] bg-[var(--accent)] opacity-10 blur-[180px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[var(--blue)] opacity-5 blur-[180px] rounded-full pointer-events-none" />
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[360px] h-[280px] sm:w-[600px] sm:h-[400px] pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse, rgba(249,199,79,0.12) 0%, transparent 70%)',
+          filter: 'blur(60px)',
+        }}
+      />
 
-      {/* Header */}
-      <header className="max-w-4xl mx-auto w-full px-6 py-8 flex items-center justify-between relative z-10">
-        <LogoMark showText size={36} />
-        <div className="flex items-center gap-6">
-          <Link
-            href="/login"
-            className="text-xs font-mono uppercase tracking-widest text-[var(--muted)] hover:text-[var(--text)] transition-colors"
-          >
-            Sign In
+      <header className="max-w-4xl mx-auto w-full px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between relative z-10">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-[9px] flex items-center justify-center font-extrabold text-sm" style={{ background: 'var(--gold-gradient)', color: 'var(--text)', fontFamily: 'var(--font-display)' }}>
+            M
+          </div>
+          <span className="text-lg font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
+            mito
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3 sm:gap-5">
+          <Link href="/login" className="hidden sm:inline text-[13px] font-medium" style={{ color: 'var(--text2)', fontFamily: 'var(--font-body)' }}>
+            Sign in
           </Link>
-          <Link
-            href="/signup"
-            className="px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[#0a0908] font-mono text-xs font-bold hover:bg-[var(--accent2)] transition-all shadow-[0_0_20px_var(--accent-glow)] active:scale-95"
-          >
-            Get Started →
+          <Link href="/signup" className="gold-btn px-4 sm:px-5 py-2 text-[12px] sm:text-[13px] font-semibold" style={{ color: 'var(--text)', fontFamily: 'var(--font-display)' }}>
+            Get Started -&gt;
           </Link>
         </div>
       </header>
 
-      {/* Hero */}
-      <main className="max-w-4xl mx-auto w-full px-6 py-12 sm:py-20 flex flex-col items-center text-center relative z-10">
+      <main className="max-w-4xl mx-auto w-full px-4 sm:px-6 pb-10 sm:pb-16 pt-4 sm:pt-8 flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-10 relative z-10">
+        <div className="flex-1 flex flex-col gap-4 sm:gap-5 w-full items-center md:items-start text-center md:text-left">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 0.0 }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full w-fit border text-[12px] font-semibold"
+            style={{ background: 'var(--surface)', borderColor: 'rgba(232,160,48,0.3)', color: 'var(--gold-2)', fontFamily: 'var(--font-body)' }}
+          >
+            <span className="sparkle-star text-[10px]">✦</span> Built for real people
+          </motion.div>
 
-        <h1
-          className="text-5xl sm:text-7xl font-black tracking-tight max-w-3xl leading-[1.05] mb-8 animate-fade-up"
-          style={{ fontFamily: 'Syne, serif' }}
-        >
-          Your food,{' '}
-          <span className="text-[var(--accent)] italic font-normal drop-shadow-[0_0_35px_rgba(244,162,77,0.3)]">
-            reflected.
-          </span>
-          <br />
-          Without judgment.
-        </h1>
-
-        <div className="max-w-xl mb-10 animate-fade-up delay-1">
-          <p className="text-sm sm:text-base text-[var(--muted)] leading-relaxed font-mono">
-            Log what you ate in under 30 seconds. No menus, no searching databases.
-            Just you and what you ate — reflected back clearly.
-          </p>
-          <div className="flex items-center justify-center gap-3 mt-5 text-xs font-mono uppercase tracking-widest text-[var(--muted2)]">
-            <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
-            <span>A mirror, not an instructor</span>
-            <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
-          </div>
-        </div>
-
-        {/* Prompt box */}
-        <div className="w-full max-w-2xl mb-16 sm:mb-24 animate-fade-up delay-2">
-          <div className="moving-gradient-border-wrapper shadow-[0_0_50px_rgba(244,162,77,0.25)]">
-            <Link
-              href="/signup"
-              className="w-full bg-[#12100e] rounded-[1.6rem] p-5 sm:p-7 flex items-center justify-between text-left group transition-all gap-4"
+          <motion.h1
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.07 }}
+            className="text-[32px] sm:text-[46px] lg:text-[54px] font-extrabold leading-[1.06] tracking-tight"
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}
+          >
+            Your food,{' '}
+            <span
+              className="italic inline-block"
+              style={{
+                background: 'var(--gold-gradient-text)',
+                backgroundSize: '200%',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
             >
-              <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                <h2 className="text-sm sm:text-lg font-bold text-[var(--text)] group-hover:text-[var(--accent)] transition-colors" style={{ fontFamily: 'Syne, serif' }}>
-                  Hey there, what fueled you today?
-                </h2>
-                <AnimatedTypewriterPrompt className="text-xs sm:text-sm text-[var(--text2)] font-mono truncate" />
-              </div>
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-[#0a0908] font-mono text-xs font-bold shadow-[0_0_20px_var(--accent-glow)] group-hover:scale-105 transition-transform shrink-0">
-                <span>Try Mito</span>
-                <span>→</span>
-              </div>
-            </Link>
+              reflected.&#8203;
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.14 }}
+            className="text-[15px] sm:text-[16px] leading-relaxed max-w-sm md:max-w-md"
+            style={{ color: 'var(--text2)', fontFamily: 'var(--font-body)' }}
+          >
+            Not a coach. Not a diet plan. A clear mirror for what you eat.
+            Log in 30 seconds — talk, type, or snap a photo.
+          </motion.p>
+
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 0.4 }} className="flex gap-2 overflow-x-auto pb-1 no-scrollbar w-full">
+            {['🥑 Mindful logging', '🔥 Calorie goals', '📊 Macro trends', '🌿 Fiber tracking'].map((t) => (
+              <span key={t} className="shrink-0 px-3 py-1.5 rounded-full text-[12px] sm:text-[13px] font-medium" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text2)', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)' }}>
+                {t}
+              </span>
+            ))}
+          </motion.div>
+
+          <div className="hidden sm:block">
+            <AnimatedTypewriterPrompt prefix="Try:" />
           </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 24, delay: 0.28 }}
+            className="flex flex-col sm:flex-row gap-3 w-full md:w-auto"
+          >
+            <Link href="/signup" className="gold-btn inline-flex items-center justify-center gap-2 px-6 py-3.5 text-[15px] font-bold relative" style={{ color: 'var(--text)', fontFamily: 'var(--font-display)' }}>
+              <span>Get Started</span>
+              <span>→</span>
+              <span className="sparkle-dot absolute -top-1 -right-1" />
+            </Link>
+            <Link href="/login" className="inline-flex items-center justify-center gap-1.5 px-6 py-3.5 rounded-full text-[14px] font-medium" style={{ border: '1.5px solid var(--border)', color: 'var(--text2)', fontFamily: 'var(--font-body)' }}>
+              Sign in
+            </Link>
+          </motion.div>
         </div>
 
-        {/* Bento screenshot grid */}
-        <BentoSection />
+        {/* Food bowl hero — hidden on mobile, shown md+ */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.88 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 24, delay: 0.15 }}
+          className="hidden md:block relative flex-shrink-0 w-72 h-72 lg:w-88 lg:h-88"
+        >
+          <div className="w-full h-full rounded-full overflow-hidden" style={{ boxShadow: '0 16px 64px rgba(200,130,10,0.25), 0 4px 20px rgba(28,26,20,0.12)' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/food-hero-bowl.png" alt="Healthy meal bowl with fresh ingredients" className="w-full h-full object-cover" />
+          </div>
 
+          <motion.div
+            animate={{ y: [0, -7, 0] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute -left-8 top-1/4 px-3 py-2 rounded-2xl text-[12px] font-semibold"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', fontFamily: 'var(--font-body)', boxShadow: 'var(--shadow-card)', whiteSpace: 'nowrap' }}
+          >
+            🥑 Fresh Avocado
+          </motion.div>
+
+          <motion.div
+            animate={{ y: [0, -5, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+            className="absolute -right-6 bottom-1/4 px-3 py-2 rounded-2xl text-[12px] font-semibold"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', fontFamily: 'var(--font-body)', boxShadow: 'var(--shadow-card)', whiteSpace: 'nowrap' }}
+          >
+            🐔 Grilled Chicken
+          </motion.div>
+
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.5 }}
+            className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-3.5 py-2 rounded-full text-[12px] font-bold whitespace-nowrap"
+            style={{ background: 'var(--gold-gradient)', color: 'var(--text)', fontFamily: 'var(--font-display)', boxShadow: 'var(--gold-shadow)' }}
+          >
+            🔥 456 kcal · 38g protein
+          </motion.div>
+        </motion.div>
       </main>
 
-      {/* Footer */}
-      <footer className="max-w-4xl mx-auto w-full px-6 py-8 mt-16 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-[var(--muted2)] border-t border-[var(--border)] relative z-10 gap-4">
-        <span>© {new Date().getFullYear()} Mito — Powerhouse of You</span>
+      <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 pb-16 sm:pb-20 relative z-10">
+        <BentoSection />
+      </div>
+
+      <footer className="max-w-4xl mx-auto w-full px-4 sm:px-6 py-8 mt-auto flex flex-col sm:flex-row items-center justify-between text-[12px] relative z-10 gap-4" style={{ borderTop: '1px solid var(--border)', color: 'var(--muted)', fontFamily: 'var(--font-body)' }}>
+        <span>© {new Date().getFullYear()} Mito - Powerhouse of You</span>
         <div className="flex items-center gap-6">
-          <Link href="/login" className="hover:text-[var(--muted)] transition-colors">Sign In</Link>
-          <Link href="/signup" className="hover:text-[var(--muted)] transition-colors">Register</Link>
+          <Link href="/login" style={{ color: 'var(--muted)' }}>Sign In</Link>
+          <Link href="/signup" style={{ color: 'var(--gold-2)', fontWeight: 600 }}>Get Started -&gt;</Link>
         </div>
       </footer>
-
     </div>
   );
 }
