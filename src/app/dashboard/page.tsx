@@ -314,7 +314,7 @@ export default function DashboardPage() {
         {/* ── Insight ── */}
         {insight && !loading && (
           <motion.div variants={item} className="mito-card px-4 py-3 mb-4">
-            <MonoLabel className="block mb-1">Today's observation</MonoLabel>
+            <MonoLabel className="block mb-1">Today&apos;s observation</MonoLabel>
             <p className="text-[14px] italic" style={{ color: 'var(--text2)', fontFamily: 'var(--font-body)' }}>{insight}</p>
           </motion.div>
         )}
@@ -330,7 +330,7 @@ export default function DashboardPage() {
                   <p className="text-[13px]" style={{ color: 'var(--text2)', fontFamily: 'var(--font-body)' }}>
                     <span style={{ color: 'var(--red)' }}>⊘ </span>
                     {t.rule?.description}
-                    <span style={{ color: 'var(--muted)' }}> · "{t.matched_keyword}"</span>
+                    <span style={{ color: 'var(--muted)' }}> · &ldquo;{t.matched_keyword}&rdquo;</span>
                   </p>
                   <span className="text-[11px] shrink-0 ml-2" style={{ color: 'var(--muted)' }}>
                     {format(new Date(t.triggered_at), 'h:mm a')}

@@ -201,7 +201,7 @@ function LogContent() {
       const t2 = setTimeout(() => textareaRef.current?.focus(), 300);
       return () => { clearTimeout(t1); clearTimeout(t2); };
     }
-  }, [searchParams]);
+  }, [searchParams, toggleListening]);
 
   function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -407,7 +407,7 @@ function LogContent() {
       </div>
       {description && (
         <p className="text-[13px] italic text-center max-w-xs line-clamp-2" style={{ color: 'var(--muted)' }}>
-          "{description}"
+          &ldquo;{description}&rdquo;
         </p>
       )}
     </div>
