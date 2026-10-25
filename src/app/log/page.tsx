@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect, Suspense } from 'react';
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { ArrowLeft, Camera, Check, Mic, Sparkles, Zap } from 'lucide-react';
@@ -174,14 +174,14 @@ function LogContent() {
     }
   }
 
-  function toggleListening() {
+  const toggleListening = useCallback(() => {
     if (isTranscribing) return;
     if (isListening) {
       stopRecording();
     } else {
       startRecording();
     }
-  }
+  }, [isTranscribing, isListening]);
 
   useEffect(() => {
     const mode = searchParams.get('mode');

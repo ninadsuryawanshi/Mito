@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, CSSProperties } from 'react';
 
 export const VEG_MEAL_PROMPTS = [
   "2 chapatis with bhindi bhaji and a bowl of dal",
@@ -17,12 +17,14 @@ export const VEG_MEAL_PROMPTS = [
 interface AnimatedTypewriterPromptProps {
   prefix?: string;
   className?: string;
+  style?: CSSProperties;
   prompts?: string[];
 }
 
 export function AnimatedTypewriterPrompt({
   prefix = '',
   className = '',
+  style,
   prompts = VEG_MEAL_PROMPTS,
 }: AnimatedTypewriterPromptProps) {
   const [promptIdx, setPromptIdx] = useState(0);
@@ -58,7 +60,7 @@ export function AnimatedTypewriterPrompt({
   }, [currentText, isDeleting, promptIdx, prompts]);
 
   return (
-    <span className={`inline-flex items-center flex-wrap ${className}`}>
+    <span className={`inline-flex items-center flex-wrap ${className}`} style={style}>
       {prefix && <span className="mr-1 opacity-90">{prefix}</span>}
       <span className="relative font-mono text-[var(--text2)] font-normal text-xs sm:text-sm">
         {currentText}
