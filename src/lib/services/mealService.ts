@@ -2,6 +2,7 @@
 // Called by API routes, never directly from the frontend
 
 import { AIMealAnalysis, MealLog, DashboardStats, TimelineView } from '@/types';
+import { encryptText, decryptText } from '@/lib/crypto';
 import {
   startOfDay,
   endOfDay,
@@ -120,7 +121,7 @@ export async function saveMealWithItems(
     .insert({
       user_id: userId,
       logged_at: opts.logged_at || new Date().toISOString(),
-      description_text: opts.description || null,
+      description_text: opts.description ? encryptText(opts.description) : null,
       photo_url: opts.photo_url || null,
       input_method: opts.input_method,
       reused_from_log_id: opts.reused_from_log_id || null,
@@ -240,7 +241,10 @@ export async function getMealsForTimeline(
     throw new Error(`Failed to fetch meals: ${error.message}`);
   }
 
-  return (data || []) as MealLog[];
+  return (data || []).map((m: any) => ({
+    ...m,
+    description_text: m.description_text ? decryptText(m.description_text) : m.description_text,
+  })) as MealLog[];
 }
 
 // ─── Get Recent Meals ─────────────────────────────────────────────────────────
@@ -259,6 +263,7 @@ export async function getRecentMeals(
       eating_context,
       total_calories,
       logged_at,
+      description_text,
       ai_note,
       items:meal_log_items(
         food_entity:food_entities(name)
@@ -272,7 +277,10 @@ export async function getRecentMeals(
     throw new Error(`Failed to fetch recent meals: ${error.message}`);
   }
 
-  return (data || []) as MealLog[];
+  return (data || []).map((m: any) => ({
+    ...m,
+    description_text: m.description_text ? decryptText(m.description_text) : m.description_text,
+  })) as MealLog[];
 }
 
 // ─── Compute Dashboard Stats ──────────────────────────────────────────────────
