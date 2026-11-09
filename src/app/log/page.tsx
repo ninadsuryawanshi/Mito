@@ -609,44 +609,147 @@ function LogContent() {
               </div>
             )}
 
-            {showTimePicker && (
-              <div className="bg-[var(--surface)] border rounded-xl p-4 mt-3 animate-scale-in" style={{ borderColor: 'rgba(232,160,48,0.35)' }}>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {TIME_PRESETS.map(preset => {
-                    const val = preset.getValue();
-                    const isNow = preset.label === 'Now';
-                    return (
-                      <button key={preset.label}
-                        onClick={() => {
-                          setLogTime(val);
-                          setTimeEdited(!isNow);
-                          setShowTimePicker(false);
-                        }}
-                        className="px-3 py-1.5 rounded-lg text-xs border transition-all"
-                        style={logTime === val
-                          ? { borderColor: 'rgba(232,160,48,0.55)', color: 'var(--gold-1)', background: 'var(--gold-tint)' }
-                          : { borderColor: 'var(--border)', color: 'var(--muted)' }}>
-                        {preset.label}
-                      </button>
-                    );
-                  })}
+            {showTimePicker && (() => {
+              const HOURS = Array.from({ length: 12 }, (_, i) => i + 1);
+              const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5);
+              const parsed = (() => {
+                const [hStr, mStr] = logTime.split(':');
+                let h = parseInt(hStr, 10);
+                const m = parseInt(mStr, 10);
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                if (h === 0) h = 12;
+                else if (h > 12) h -= 12;
+                return { h, m, ampm };
+              })();
+
+              const applyTime = (h: number, m: number, ampm: string) => {
+                let h24 = h;
+                if (ampm === 'AM' && h === 12) h24 = 0;
+                else if (ampm === 'PM' && h !== 12) h24 = h + 12;
+                const val = `${String(h24).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                setLogTime(val);
+                setTimeEdited(true);
+              };
+
+              return (
+                <div className="bg-[var(--surface)] border rounded-2xl p-4 mt-3 animate-scale-in" style={{ borderColor: 'rgba(232,160,48,0.35)' }}>
+                  {/* Quick presets */}
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {TIME_PRESETS.map(preset => {
+                      const val = preset.getValue();
+                      const isNow = preset.label === 'Now';
+                      return (
+                        <button key={preset.label}
+                          onClick={() => {
+                            setLogTime(val);
+                            setTimeEdited(!isNow);
+                            setShowTimePicker(false);
+                          }}
+                          className="px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all"
+                          style={logTime === val
+                            ? { borderColor: 'rgba(232,160,48,0.55)', color: 'var(--gold-1)', background: 'var(--gold-tint)' }
+                            : { borderColor: 'var(--border)', color: 'var(--muted)' }}>
+                          {preset.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Scroll wheel picker */}
+                  <div className="relative flex items-center justify-center gap-1 mx-auto" style={{ maxWidth: 280 }}>
+                    {/* Center highlight band */}
+                    <div className="absolute left-2 right-2 h-10 rounded-xl pointer-events-none z-0"
+                      style={{ top: '50%', transform: 'translateY(-50%)', background: 'var(--gold-tint)', border: '1.5px solid rgba(232,160,48,0.3)' }} />
+
+                    {/* Hour wheel */}
+                    <div className="flex-1 relative overflow-hidden" style={{ height: 160 }}>
+                      <div className="absolute inset-x-0 top-0 h-16 z-10 pointer-events-none" style={{ background: 'linear-gradient(to bottom, var(--surface), transparent)' }} />
+                      <div className="absolute inset-x-0 bottom-0 h-16 z-10 pointer-events-none" style={{ background: 'linear-gradient(to top, var(--surface), transparent)' }} />
+                      <div className="h-full overflow-y-auto no-scrollbar snap-y snap-mandatory flex flex-col items-center"
+                        style={{ scrollSnapType: 'y mandatory', paddingTop: 60, paddingBottom: 60 }}
+                        ref={(el) => {
+                          if (el) {
+                            const idx = HOURS.indexOf(parsed.h);
+                            if (idx >= 0) el.scrollTop = idx * 40;
+                          }
+                        }}>
+                        {HOURS.map(h => (
+                          <button key={h}
+                            onClick={() => applyTime(h, parsed.m, parsed.ampm)}
+                            className="snap-center shrink-0 flex items-center justify-center w-full transition-all"
+                            style={{
+                              height: 40,
+                              fontSize: h === parsed.h ? 22 : 16,
+                              fontWeight: h === parsed.h ? 800 : 400,
+                              color: h === parsed.h ? 'var(--text)' : 'var(--muted2)',
+                              fontFamily: 'var(--font-display)',
+                              background: 'transparent', border: 'none', cursor: 'pointer',
+                            }}>
+                            {h}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Separator */}
+                    <span className="text-xl font-bold relative z-10" style={{ color: 'var(--text)', fontFamily: 'var(--font-display)' }}>:</span>
+
+                    {/* Minute wheel */}
+                    <div className="flex-1 relative overflow-hidden" style={{ height: 160 }}>
+                      <div className="absolute inset-x-0 top-0 h-16 z-10 pointer-events-none" style={{ background: 'linear-gradient(to bottom, var(--surface), transparent)' }} />
+                      <div className="absolute inset-x-0 bottom-0 h-16 z-10 pointer-events-none" style={{ background: 'linear-gradient(to top, var(--surface), transparent)' }} />
+                      <div className="h-full overflow-y-auto no-scrollbar snap-y snap-mandatory flex flex-col items-center"
+                        style={{ scrollSnapType: 'y mandatory', paddingTop: 60, paddingBottom: 60 }}
+                        ref={(el) => {
+                          if (el) {
+                            const closestIdx = MINUTES.reduce((best, m, i) => Math.abs(m - parsed.m) < Math.abs(MINUTES[best] - parsed.m) ? i : best, 0);
+                            el.scrollTop = closestIdx * 40;
+                          }
+                        }}>
+                        {MINUTES.map(m => (
+                          <button key={m}
+                            onClick={() => applyTime(parsed.h, m, parsed.ampm)}
+                            className="snap-center shrink-0 flex items-center justify-center w-full transition-all"
+                            style={{
+                              height: 40,
+                              fontSize: m === parsed.m || (MINUTES.indexOf(parsed.m) === -1 && MINUTES.reduce((best, v, i) => Math.abs(v - parsed.m) < Math.abs(MINUTES[best] - parsed.m) ? i : best, 0) === MINUTES.indexOf(m)) ? 22 : 16,
+                              fontWeight: m === parsed.m ? 800 : 400,
+                              color: m === parsed.m ? 'var(--text)' : 'var(--muted2)',
+                              fontFamily: 'var(--font-display)',
+                              background: 'transparent', border: 'none', cursor: 'pointer',
+                            }}>
+                            {String(m).padStart(2, '0')}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* AM/PM toggle */}
+                    <div className="flex flex-col gap-1.5 relative z-10 ml-1">
+                      {['AM', 'PM'].map(v => (
+                        <button key={v}
+                          onClick={() => applyTime(parsed.h, parsed.m, v)}
+                          className="px-3 py-2 rounded-xl text-[12px] font-bold transition-all"
+                          style={v === parsed.ampm
+                            ? { background: 'var(--gold-gradient)', color: 'var(--text)', fontFamily: 'var(--font-display)', boxShadow: '0 2px 8px rgba(200,130,10,0.25)' }
+                            : { background: 'var(--surface2)', color: 'var(--muted)', fontFamily: 'var(--font-display)', border: '1px solid var(--border)' }}>
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Done button */}
+                  <div className="flex justify-end mt-4">
+                    <button onClick={() => setShowTimePicker(false)}
+                      className="gold-btn px-5 py-2 text-[12px] font-bold"
+                      style={{ color: 'var(--text)', fontFamily: 'var(--font-display)' }}>
+                      Done
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <MonoLabel>Custom:</MonoLabel>
-                  <input
-                    type="time"
-                    value={logTime}
-                    onChange={e => { setLogTime(e.target.value); setTimeEdited(true); }}
-                    className="flex-1 bg-[var(--surface2)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] outline-none"
-                  />
-                  <button onClick={() => setShowTimePicker(false)}
-                    className="text-xs font-semibold px-3 py-2 rounded-lg"
-                    style={{ color: 'var(--gold-1)', border: '1px solid rgba(232,160,48,0.45)' }}>
-                    Done
-                  </button>
-                </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
 
           {error && (
