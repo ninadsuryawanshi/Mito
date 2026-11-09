@@ -61,6 +61,11 @@ export function CalorieRing({ calories, goal, protein, proteinGoal, carbs, fat }
   const circumference = 2 * Math.PI * radius;
   const pct = goal > 0 ? Math.min(calories / goal, 1) : 0;
 
+  // Dynamic font size: scale down for larger numbers to stay inside ring
+  const formattedLen = Math.round(calories).toLocaleString().length;
+  const ringFontSize = formattedLen <= 3 ? 40 : formattedLen <= 4 ? 34 : formattedLen <= 5 ? 28 : 24;
+  const innerDiameter = size - strokeWidth * 2 - 8; // usable width inside ring
+
   return (
     <div className="mito-card p-5 flex flex-col items-center gap-4">
       {/* Header */}
@@ -124,15 +129,15 @@ export function CalorieRing({ calories, goal, protein, proteinGoal, carbs, fat }
           />
         </svg>
 
-        {/* Center content */}
+        {/* Center content — constrained to inner ring */}
         <div
           className="absolute inset-0 flex flex-col items-center justify-center"
-          style={{ transform: 'rotate(0deg)' }}
+          style={{ padding: strokeWidth + 4, overflow: 'hidden' }}
         >
           <AnimatedNumber
             value={calories}
             className="font-extrabold leading-none"
-            style={{ fontSize: 44, fontFamily: 'var(--font-display)', color: 'var(--text)' } as React.CSSProperties}
+            style={{ fontSize: ringFontSize, fontFamily: 'var(--font-display)', color: 'var(--text)', maxWidth: innerDiameter, textAlign: 'center' } as React.CSSProperties}
           />
           <span className="text-[13px] mt-0.5" style={{ color: 'var(--muted)', fontFamily: 'var(--font-body)' }}>
             kcal
