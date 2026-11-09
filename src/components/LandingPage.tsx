@@ -399,12 +399,12 @@ export function LandingPage() {
           </motion.div>
         </div>
 
-        {/* Food bowl hero — hidden on mobile, shown md+ */}
+        {/* Food bowl hero — smaller on mobile, larger on md+ */}
         <motion.div
           initial={{ opacity: 0, scale: 0.88 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 24, delay: 0.15 }}
-          className="hidden md:block relative flex-shrink-0 w-72 h-72 lg:w-88 lg:h-88"
+          className="relative flex-shrink-0 w-40 h-40 md:w-72 md:h-72 lg:w-88 lg:h-88 mx-auto md:mx-0"
         >
           <div className="w-full h-full rounded-full overflow-hidden" style={{ boxShadow: '0 16px 64px rgba(200,130,10,0.25), 0 4px 20px rgba(28,26,20,0.12)' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -414,7 +414,7 @@ export function LandingPage() {
           <motion.div
             animate={{ y: [0, -7, 0] }}
             transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute -left-8 top-1/4 px-3 py-2 rounded-2xl text-[12px] font-semibold"
+            className="absolute -left-8 top-1/4 px-3 py-2 rounded-2xl text-[12px] font-semibold hidden md:block"
             style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', fontFamily: 'var(--font-body)', boxShadow: 'var(--shadow-card)', whiteSpace: 'nowrap' }}
           >
             🥑 Fresh Avocado
@@ -423,7 +423,7 @@ export function LandingPage() {
           <motion.div
             animate={{ y: [0, -5, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-            className="absolute -right-6 bottom-1/4 px-3 py-2 rounded-2xl text-[12px] font-semibold"
+            className="absolute -right-6 bottom-1/4 px-3 py-2 rounded-2xl text-[12px] font-semibold hidden md:block"
             style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', fontFamily: 'var(--font-body)', boxShadow: 'var(--shadow-card)', whiteSpace: 'nowrap' }}
           >
             🐔 Grilled Chicken
@@ -433,7 +433,7 @@ export function LandingPage() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.5 }}
-            className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-3.5 py-2 rounded-full text-[12px] font-bold whitespace-nowrap"
+            className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-3.5 py-2 rounded-full text-[11px] md:text-[12px] font-bold whitespace-nowrap"
             style={{ background: 'var(--gold-gradient)', color: 'var(--text)', fontFamily: 'var(--font-display)', boxShadow: 'var(--gold-shadow)' }}
           >
             🔥 456 kcal · 38g protein
