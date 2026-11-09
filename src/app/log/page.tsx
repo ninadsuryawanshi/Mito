@@ -429,7 +429,7 @@ function LogContent() {
   );
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 min-h-dvh pb-28" style={{ background: 'var(--bg)' }}>
+    <div className="max-w-2xl lg:max-w-3xl mx-auto px-4 py-6 min-h-dvh pb-28" style={{ background: 'var(--bg)' }}>
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-7 anim-fade-up">

@@ -147,7 +147,7 @@ export default function DashboardPage() {
       <OnboardingTour />
 
       <motion.div
-        className="max-w-2xl mx-auto px-4 py-5"
+        className="max-w-2xl lg:max-w-5xl mx-auto px-4 py-5"
         variants={container} initial="hidden" animate="show"
       >
         {/* ── Header ── */}
@@ -210,56 +210,6 @@ export default function DashboardPage() {
           </motion.div>
         )}
 
-        {/* ── Calorie Ring Hero (day view only) ── */}
-        {view === 'day' && (
-          <motion.div variants={item} className="mb-4">
-            {loading
-              ? <div className="mito-card p-5 h-72 skeleton" />
-              : (
-                <CalorieRing
-                  calories={stats ? Math.round(stats.total_calories) : 0}
-                  goal={profile?.recommended_calories || 0}
-                  protein={stats ? Math.round(stats.total_protein_g) : 0}
-                  proteinGoal={profile?.recommended_protein_g || 0}
-                  carbs={stats ? Math.round(stats.total_carbs_g) : 0}
-                  fat={stats ? Math.round(stats.total_fat_g) : 0}
-                />
-              )
-            }
-          </motion.div>
-        )}
-
-        {/* ── Quick-Log Box ── */}
-        <motion.div variants={item} id="quick-log-prompt" className="quicklog-card quicklog-ambient-glow mb-4 p-4">
-          <Link href="/log?autoFocus=true" className="flex items-center justify-between gap-4 group">
-            <div className="flex flex-col gap-1 flex-1 min-w-0">
-              <p className="text-[16px] font-bold leading-snug" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
-                {profile?.name ? `Hey ${profile.name.split(' ')[0]},` : 'Hey,'}{' '}
-                <span style={{ color: 'var(--text2)', fontWeight: 500 }}>{WITTY_PROMPTS[promptIndex]}</span>
-              </p>
-              <AnimatedTypewriterPrompt className="text-[13px]" style={{ color: 'var(--muted)', fontFamily: 'var(--font-body)' }} />
-            </div>
-            <motion.div
-              whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              className="gold-btn w-10 h-10 flex items-center justify-center shrink-0 text-[var(--text)] font-bold text-base"
-              style={{ borderRadius: '50%', padding: 0 }}
-            ><ChevronDown className="w-4 h-4 -rotate-90" /></motion.div>
-          </Link>
-          <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: '1px solid rgba(232,160,48,0.2)' }}>
-            <Link href="/log?mode=photo"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all"
-              style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text2)', fontFamily: 'var(--font-body)' }}>
-              <Camera className="w-3.5 h-3.5" /> Photo
-            </Link>
-            <Link href="/log?mode=voice"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium"
-              style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text2)', fontFamily: 'var(--font-body)' }}>
-              <Mic className="w-3.5 h-3.5" /> Voice
-            </Link>
-          </div>
-        </motion.div>
-
         {/* ── Timeline Toggle ── */}
         <motion.div variants={item} className="tab-switcher mb-5">
           {VIEWS.map((v) => (
@@ -273,7 +223,7 @@ export default function DashboardPage() {
           ))}
         </motion.div>
 
-        {/* ── Week/Month Charts ── */}
+        {/* ── Week/Month Charts (full width) ── */}
         {!loading && view !== 'day' && (
           <motion.div variants={item} className="mb-4">
             {view === 'week' && (() => {
@@ -311,115 +261,183 @@ export default function DashboardPage() {
           </motion.div>
         )}
 
-        {/* ── Insight ── */}
-        {insight && !loading && (
-          <motion.div variants={item} className="mito-card px-4 py-3 mb-4">
-            <MonoLabel className="block mb-1">Today&apos;s observation</MonoLabel>
-            <p className="text-[14px] italic" style={{ color: 'var(--text2)', fontFamily: 'var(--font-body)' }}>{insight}</p>
-          </motion.div>
-        )}
+        {/* ── Two-Column Layout (lg+) ── */}
+        <div className="lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6">
+          {/* ── Left Column: Ring + QuickLog + GoalCards ── */}
+          <div className="lg:sticky lg:top-5 lg:self-start">
+            {/* Calorie Ring Hero (day view only) */}
+            {view === 'day' && (
+              <motion.div variants={item} className="mb-4">
+                {loading
+                  ? <div className="mito-card p-5 h-72 skeleton" />
+                  : (
+                    <CalorieRing
+                      calories={stats ? Math.round(stats.total_calories) : 0}
+                      goal={profile?.recommended_calories || 0}
+                      protein={stats ? Math.round(stats.total_protein_g) : 0}
+                      proteinGoal={profile?.recommended_protein_g || 0}
+                      carbs={stats ? Math.round(stats.total_carbs_g) : 0}
+                      fat={stats ? Math.round(stats.total_fat_g) : 0}
+                    />
+                  )
+                }
+              </motion.div>
+            )}
 
-        {/* ── Rule Traces ── */}
-        {ruleTraces.length > 0 && !loading && (
-          <motion.div variants={item} className="rounded-2xl px-4 py-3 mb-4"
-            style={{ background: 'var(--red-tint)', border: '1px solid rgba(224,92,92,0.2)' }}>
-            <MonoLabel className="block mb-2" style={{ color: 'var(--red)' }}>Rules triggered</MonoLabel>
-            <div className="flex flex-col gap-1.5">
-              {ruleTraces.map((t: any) => (
-                <div key={t.trace_id} className="flex items-center justify-between">
-                  <p className="text-[13px]" style={{ color: 'var(--text2)', fontFamily: 'var(--font-body)' }}>
-                    <span style={{ color: 'var(--red)' }}>⊘ </span>
-                    {t.rule?.description}
-                    <span style={{ color: 'var(--muted)' }}> · &ldquo;{t.matched_keyword}&rdquo;</span>
+            {/* Quick-Log Box */}
+            <motion.div variants={item} id="quick-log-prompt" className="quicklog-card quicklog-ambient-glow mb-4 p-4">
+              <Link href="/log?autoFocus=true" className="flex items-center justify-between gap-4 group">
+                <div className="flex flex-col gap-1 flex-1 min-w-0">
+                  <p className="text-[16px] font-bold leading-snug" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
+                    {profile?.name ? `Hey ${profile.name.split(' ')[0]},` : 'Hey,'}{' '}
+                    <span style={{ color: 'var(--text2)', fontWeight: 500 }}>{WITTY_PROMPTS[promptIndex]}</span>
                   </p>
-                  <span className="text-[11px] shrink-0 ml-2" style={{ color: 'var(--muted)' }}>
-                    {format(new Date(t.triggered_at), 'h:mm a')}
-                  </span>
+                  <AnimatedTypewriterPrompt className="text-[13px]" style={{ color: 'var(--muted)', fontFamily: 'var(--font-body)' }} />
                 </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
+                <motion.div
+                  whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                  className="gold-btn w-10 h-10 flex items-center justify-center shrink-0 text-[var(--text)] font-bold text-base"
+                  style={{ borderRadius: '50%', padding: 0 }}
+                ><ChevronDown className="w-4 h-4 -rotate-90" /></motion.div>
+              </Link>
+              <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: '1px solid rgba(232,160,48,0.2)' }}>
+                <Link href="/log?mode=photo"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all"
+                  style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text2)', fontFamily: 'var(--font-body)' }}>
+                  <Camera className="w-3.5 h-3.5" /> Photo
+                </Link>
+                <Link href="/log?mode=voice"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium"
+                  style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text2)', fontFamily: 'var(--font-body)' }}>
+                  <Mic className="w-3.5 h-3.5" /> Voice
+                </Link>
+              </div>
+            </motion.div>
 
-        {/* ── Meals section ── */}
-        <motion.div variants={item}>
-          <div className="flex items-center justify-between mb-3">
-            <MonoLabel>
-              {view === 'day' ? "Today's meals" : view === 'week' ? 'This week' : 'This month'}
-            </MonoLabel>
-            {tabLoading && (
-              <div className="w-4 h-4 border-2 border-[var(--surface3)] border-t-[var(--gold-2)] rounded-full anim-spin" />
+            {/* Nutrient Goal Cards (day view) */}
+            {!loading && stats && stats.total_meals > 0 && view === 'day' && (
+              <motion.div variants={item} className="grid grid-cols-2 gap-3 mb-4">
+                <GoalCard label="Fiber" value={Math.round(stats.total_fiber_g)} unit="g"
+                  goal={WHO_LIMITS.fiber_g} color="var(--green)" mode="reach" />
+                <GoalCard label="Sugar" value={Math.round(stats.total_sugar_g)} unit="g"
+                  goal={WHO_LIMITS.sugar_g} color="var(--red)" mode="limit" />
+                <GoalCard label="Sodium" value={Math.round(stats.total_sodium_mg)} unit="mg"
+                  goal={WHO_LIMITS.sodium_mg} color="var(--muted)" mode="limit" />
+                <GoalCard label="Protein" value={Math.round(stats.total_protein_g)} unit="g"
+                  goal={profile?.recommended_protein_g || undefined} color="var(--blue)" mode="goal" />
+              </motion.div>
+            )}
+
+            {/* Insight (day view, desktop left column) */}
+            {insight && !loading && view === 'day' && (
+              <motion.div variants={item} className="mito-card px-4 py-3 mb-4">
+                <MonoLabel className="block mb-1">Today&apos;s observation</MonoLabel>
+                <p className="text-[14px] italic" style={{ color: 'var(--text2)', fontFamily: 'var(--font-body)' }}>{insight}</p>
+              </motion.div>
+            )}
+
+            {/* Rule Traces */}
+            {ruleTraces.length > 0 && !loading && (
+              <motion.div variants={item} className="rounded-2xl px-4 py-3 mb-4"
+                style={{ background: 'var(--red-tint)', border: '1px solid rgba(224,92,92,0.2)' }}>
+                <MonoLabel className="block mb-2" style={{ color: 'var(--red)' }}>Rules triggered</MonoLabel>
+                <div className="flex flex-col gap-1.5">
+                  {ruleTraces.map((t: any) => (
+                    <div key={t.trace_id} className="flex items-center justify-between">
+                      <p className="text-[13px]" style={{ color: 'var(--text2)', fontFamily: 'var(--font-body)' }}>
+                        <span style={{ color: 'var(--red)' }}>⊘ </span>
+                        {t.rule?.description}
+                        <span style={{ color: 'var(--muted)' }}> · &ldquo;{t.matched_keyword}&rdquo;</span>
+                      </p>
+                      <span className="text-[11px] shrink-0 ml-2" style={{ color: 'var(--muted)' }}>
+                        {format(new Date(t.triggered_at), 'h:mm a')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
             )}
           </div>
 
-          {loading ? (
-            <div className="flex flex-col gap-3">
-              {[1,2,3].map(i => <div key={i} className="mito-card p-4 h-20 skeleton" />)}
-            </div>
-          ) : meals.length === 0 ? (
-            /* Empty state with food illustration */
-            <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                className="w-32 h-32 rounded-full overflow-hidden"
-                style={{ boxShadow: '0 8px 32px rgba(200,130,10,0.15)' }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/food-empty-plate.png" alt="Empty plate" className="w-full h-full object-cover" />
+          {/* ── Right Column: Meals ── */}
+          <div>
+            {/* Insight (non-day views, or mobile fallback for day) */}
+            {insight && !loading && view !== 'day' && (
+              <motion.div variants={item} className="mito-card px-4 py-3 mb-4">
+                <MonoLabel className="block mb-1">Today&apos;s observation</MonoLabel>
+                <p className="text-[14px] italic" style={{ color: 'var(--text2)', fontFamily: 'var(--font-body)' }}>{insight}</p>
               </motion.div>
-              <div>
-                <p className="text-[16px] font-bold mb-1" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
-                  Nothing logged {view === 'day' ? 'today' : view === 'week' ? 'this week' : 'this month'}
-                </p>
-                <p className="text-[13px]" style={{ color: 'var(--muted)' }}>
-                  Tap <span style={{ color: 'var(--gold-2)' }}>+</span> to log your first meal
-                </p>
+            )}
+
+            {/* Meals section */}
+            <motion.div variants={item}>
+              <div className="flex items-center justify-between mb-3">
+                <MonoLabel>
+                  {view === 'day' ? "Today's meals" : view === 'week' ? 'This week' : 'This month'}
+                </MonoLabel>
+                {tabLoading && (
+                  <div className="w-4 h-4 border-2 border-[var(--surface3)] border-t-[var(--gold-2)] rounded-full anim-spin" />
+                )}
               </div>
-            </div>
-          ) : (
-            <motion.div className="flex flex-col gap-3" variants={container} initial="hidden" animate="show">
-              {meals.map((meal, i) => (
-                <MealCard key={meal.log_id} meal={meal} index={i} onDelete={() => fetchData(false)} />
-              ))}
+
+              {loading ? (
+                <div className="flex flex-col gap-3">
+                  {[1, 2, 3].map(i => <div key={i} className="mito-card p-4 h-20 skeleton" />)}
+                </div>
+              ) : meals.length === 0 ? (
+                /* Empty state with food illustration */
+                <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
+                  <motion.div
+                    animate={{ y: [0, -8, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    className="w-32 h-32 rounded-full overflow-hidden"
+                    style={{ boxShadow: '0 8px 32px rgba(200,130,10,0.15)' }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/food-empty-plate.png" alt="Empty plate" className="w-full h-full object-cover" />
+                  </motion.div>
+                  <div>
+                    <p className="text-[16px] font-bold mb-1" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
+                      Nothing logged {view === 'day' ? 'today' : view === 'week' ? 'this week' : 'this month'}
+                    </p>
+                    <p className="text-[13px]" style={{ color: 'var(--muted)' }}>
+                      Tap <span style={{ color: 'var(--gold-2)' }}>+</span> to log your first meal
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <motion.div className="flex flex-col gap-3" variants={container} initial="hidden" animate="show">
+                  {meals.map((meal, i) => (
+                    <MealCard key={meal.log_id} meal={meal} index={i} onDelete={() => fetchData(false)} />
+                  ))}
+                </motion.div>
+              )}
             </motion.div>
-          )}
-        </motion.div>
 
-        {/* Stats panels */}
-        {!loading && stats && stats.total_meals > 0 && view === 'day' && (
-          <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 mt-4">
-            <GoalCard label="Fiber" value={Math.round(stats.total_fiber_g)} unit="g"
-              goal={WHO_LIMITS.fiber_g} color="var(--green)" mode="reach" />
-            <GoalCard label="Sugar" value={Math.round(stats.total_sugar_g)} unit="g"
-              goal={WHO_LIMITS.sugar_g} color="var(--red)" mode="limit" />
-            <GoalCard label="Sodium" value={Math.round(stats.total_sodium_mg)} unit="mg"
-              goal={WHO_LIMITS.sodium_mg} color="var(--muted)" mode="limit" />
-            <GoalCard label="Protein" value={Math.round(stats.total_protein_g)} unit="g"
-              goal={profile?.recommended_protein_g || undefined} color="var(--blue)" mode="goal" />
-          </motion.div>
-        )}
-
-        {!loading && stats && stats.total_meals > 0 && view !== 'day' && (
-          <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col gap-3 mt-4">
-            <GoalCard label="Calories" value={Math.round(stats.total_calories)} unit="kcal"
-              goal={profile?.recommended_calories ? profile.recommended_calories * viewMultiplier : undefined}
-              color="var(--gold-2)" mode="goal" showMacroBar stats={stats} />
-            <div className="grid grid-cols-2 gap-3">
-              <GoalCard label="Protein" value={Math.round(stats.total_protein_g)} unit="g"
-                goal={profile?.recommended_protein_g ? profile.recommended_protein_g * viewMultiplier : undefined}
-                color="var(--blue)" mode="goal" />
-              <GoalCard label="Fiber" value={Math.round(stats.total_fiber_g)} unit="g"
-                goal={WHO_LIMITS.fiber_g * viewMultiplier} color="var(--green)" mode="reach" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <GoalCard label="Sugar" value={Math.round(stats.total_sugar_g)} unit="g"
-                goal={WHO_LIMITS.sugar_g * viewMultiplier} color="var(--red)" mode="limit" />
-              <GoalCard label="Sodium" value={Math.round(stats.total_sodium_mg)} unit="mg"
-                goal={WHO_LIMITS.sodium_mg * viewMultiplier} color="var(--muted)" mode="limit" />
-            </div>
-          </motion.div>
-        )}
+            {/* Stats panels (week/month views) */}
+            {!loading && stats && stats.total_meals > 0 && view !== 'day' && (
+              <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col gap-3 mt-4">
+                <GoalCard label="Calories" value={Math.round(stats.total_calories)} unit="kcal"
+                  goal={profile?.recommended_calories ? profile.recommended_calories * viewMultiplier : undefined}
+                  color="var(--gold-2)" mode="goal" showMacroBar stats={stats} />
+                <div className="grid grid-cols-2 gap-3">
+                  <GoalCard label="Protein" value={Math.round(stats.total_protein_g)} unit="g"
+                    goal={profile?.recommended_protein_g ? profile.recommended_protein_g * viewMultiplier : undefined}
+                    color="var(--blue)" mode="goal" />
+                  <GoalCard label="Fiber" value={Math.round(stats.total_fiber_g)} unit="g"
+                    goal={WHO_LIMITS.fiber_g * viewMultiplier} color="var(--green)" mode="reach" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <GoalCard label="Sugar" value={Math.round(stats.total_sugar_g)} unit="g"
+                    goal={WHO_LIMITS.sugar_g * viewMultiplier} color="var(--red)" mode="limit" />
+                  <GoalCard label="Sodium" value={Math.round(stats.total_sodium_mg)} unit="mg"
+                    goal={WHO_LIMITS.sodium_mg * viewMultiplier} color="var(--muted)" mode="limit" />
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </div>
       </motion.div>
 
       <BottomNav />
@@ -439,7 +457,7 @@ function GoalCard({ label, value, unit, goal, color, mode, sub, showMacroBar, st
     : mode === 'reach' && pct >= 100 ? 'var(--green)' : color;
   const badge = mode === 'limit' && exceeded ? { text: 'Over limit', c: 'var(--red)', bg: 'var(--red-tint)' }
     : mode === 'reach' && pct >= 100 ? { text: '✓ Met', c: 'var(--green)', bg: 'var(--green-tint)' }
-    : mode === 'goal' && pct >= 100 ? { text: 'Reached', c: 'var(--gold-1)', bg: 'var(--gold-tint)' } : null;
+      : mode === 'goal' && pct >= 100 ? { text: 'Reached', c: 'var(--gold-1)', bg: 'var(--gold-tint)' } : null;
 
   return (
     <div className="mito-card p-4">
@@ -474,14 +492,14 @@ function GoalCard({ label, value, unit, goal, color, mode, sub, showMacroBar, st
           <>
             <div className="macro-bar mb-2">
               <div className="macro-bar-protein" style={{ flex: stats.total_protein_g * 4 / total }} />
-              <div className="macro-bar-carbs"   style={{ flex: stats.total_carbs_g * 4 / total }} />
-              <div className="macro-bar-fat"     style={{ flex: stats.total_fat_g * 9 / total }} />
+              <div className="macro-bar-carbs" style={{ flex: stats.total_carbs_g * 4 / total }} />
+              <div className="macro-bar-fat" style={{ flex: stats.total_fat_g * 9 / total }} />
             </div>
             <div className="flex gap-2 flex-wrap text-[11px]">
               {[
                 { label: `Protein ${Math.round(stats.total_protein_g)}g`, color: 'var(--blue)', bg: 'var(--blue-tint)' },
-                { label: `Carbs ${Math.round(stats.total_carbs_g)}g`,   color: 'var(--gold-2)', bg: 'var(--gold-tint)' },
-                { label: `Fats ${Math.round(stats.total_fat_g)}g`,      color: 'var(--orange)', bg: 'var(--orange-tint)' },
+                { label: `Carbs ${Math.round(stats.total_carbs_g)}g`, color: 'var(--gold-2)', bg: 'var(--gold-tint)' },
+                { label: `Fats ${Math.round(stats.total_fat_g)}g`, color: 'var(--orange)', bg: 'var(--orange-tint)' },
               ].map(({ label: l, color: c, bg }) => (
                 <span key={l} className="px-2 py-0.5 rounded-full font-semibold"
                   style={{ background: bg, color: c }}>{l}</span>
@@ -513,8 +531,10 @@ function MealCard({ meal, index, onDelete }: { meal: MealLog; index: number; onD
   }
 
   async function logMood(score: 1 | 2 | 3 | 4) {
-    await fetch('/api/mood', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ log_id: meal.log_id, mood_score: score }) });
+    await fetch('/api/mood', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ log_id: meal.log_id, mood_score: score })
+    });
     setShowMood(false); onDelete();
   }
 
@@ -546,7 +566,7 @@ function MealCard({ meal, index, onDelete }: { meal: MealLog; index: number; onD
             {moodScore
               ? <span title={MOOD_MAP[moodScore].label} className="text-[var(--gold-1)]">{renderMoodIcon(moodScore, 'w-4 h-4')}</span>
               : <button onClick={() => setShowMood(!showMood)} className="text-[12px] font-medium border-none bg-transparent cursor-pointer"
-                  style={{ color: 'var(--muted)' }}>mood?</button>
+                style={{ color: 'var(--muted)' }}>mood?</button>
             }
             <motion.button whileTap={{ scale: 0.85 }} onClick={deleteMeal} disabled={deleting}
               className="w-7 h-7 rounded-full flex items-center justify-center border-none bg-transparent cursor-pointer text-[16px]"
@@ -560,7 +580,7 @@ function MealCard({ meal, index, onDelete }: { meal: MealLog; index: number; onD
           {showMood && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }} className="flex gap-4 mt-3 overflow-hidden">
-              {([1,2,3,4] as const).map(s => (
+              {([1, 2, 3, 4] as const).map(s => (
                 <motion.button key={s} whileTap={{ scale: 0.85 }} onClick={() => logMood(s)}
                   className="flex flex-col items-center gap-1 border-none bg-transparent cursor-pointer">
                   <span className="text-[var(--gold-1)]">{renderMoodIcon(s, 'w-5 h-5')}</span>
@@ -620,9 +640,9 @@ function MealCard({ meal, index, onDelete }: { meal: MealLog; index: number; onD
                   <MonoLabel className="block mb-2">Nutrition</MonoLabel>
                   <div className="grid grid-cols-4 gap-2 text-center">
                     {[
-                      { label: 'Fat',    val: meal.total_fat_g,    color: 'var(--orange)' },
-                      { label: 'Fiber',  val: meal.total_fiber_g,  color: 'var(--green)'  },
-                      { label: 'Sugar',  val: meal.total_sugar_g,  color: 'var(--red)'    },
+                      { label: 'Fat', val: meal.total_fat_g, color: 'var(--orange)' },
+                      { label: 'Fiber', val: meal.total_fiber_g, color: 'var(--green)' },
+                      { label: 'Sugar', val: meal.total_sugar_g, color: 'var(--red)' },
                       { label: 'Sodium', val: meal.total_sodium_mg, color: 'var(--muted)', unit: 'mg' },
                     ].map(({ label: l, val, color, unit }) => (
                       <div key={l} className="rounded-xl p-2" style={{ background: 'var(--surface2)' }}>
