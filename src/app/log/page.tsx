@@ -60,6 +60,7 @@ function LogContent() {
   const [analysis, setAnalysis] = useState<AIMealAnalysis | null>(null);
   const [userEdited, setUserEdited] = useState(false);
   const [error, setError] = useState('');
+  const [expandedItemIdx, setExpandedItemIdx] = useState<number | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [photoMime, setPhotoMime] = useState('image/jpeg');
@@ -305,27 +306,40 @@ function LogContent() {
     }
   }
 
+  function recalcTotals(items: AIMealAnalysis['items']): Partial<AIMealAnalysis> {
+    return {
+      total_calories: items.reduce((s, it) => s + (it.calories || 0), 0),
+      total_protein_g: items.reduce((s, it) => s + (it.protein_g || 0), 0),
+      total_carbs_g: items.reduce((s, it) => s + (it.carbs_g || 0), 0),
+      total_fat_g: items.reduce((s, it) => s + (it.fat_g || 0), 0),
+      total_fiber_g: items.reduce((s, it) => s + (it.fiber_g || 0), 0),
+      total_sugar_g: items.reduce((s, it) => s + (it.sugar_g || 0), 0),
+      total_sodium_mg: items.reduce((s, it) => s + (it.sodium_mg || 0), 0),
+    };
+  }
+
   function updateNutrient(field: keyof AIMealAnalysis, value: number) {
     if (!analysis) return;
     setUserEdited(true);
     setAnalysis({ ...analysis, [field]: value });
   }
 
+  function updateItemNutrient(index: number, field: string, value: number) {
+    if (!analysis) return;
+    setUserEdited(true);
+    const newItems = analysis.items.map((it, i) =>
+      i === index ? { ...it, [field]: value } : it
+    );
+    setAnalysis({ ...analysis, items: newItems, ...recalcTotals(newItems) });
+  }
+
   function removeItem(index: number) {
     if (!analysis) return;
-    const item = analysis.items[index];
     setUserEdited(true);
-    setAnalysis({
-      ...analysis,
-      items: analysis.items.filter((_, i) => i !== index),
-      total_calories: Math.max(0, analysis.total_calories - item.calories),
-      total_protein_g: Math.max(0, analysis.total_protein_g - item.protein_g),
-      total_carbs_g: Math.max(0, analysis.total_carbs_g - item.carbs_g),
-      total_fat_g: Math.max(0, analysis.total_fat_g - item.fat_g),
-      total_fiber_g: Math.max(0, analysis.total_fiber_g - item.fiber_g),
-      total_sugar_g: Math.max(0, analysis.total_sugar_g - item.sugar_g),
-      total_sodium_mg: Math.max(0, analysis.total_sodium_mg - item.sodium_mg),
-    });
+    const newItems = analysis.items.filter((_, i) => i !== index);
+    setAnalysis({ ...analysis, items: newItems, ...recalcTotals(newItems) });
+    if (expandedItemIdx === index) setExpandedItemIdx(null);
+    else if (expandedItemIdx !== null && expandedItemIdx > index) setExpandedItemIdx(expandedItemIdx - 1);
   }
 
   function handleQuickRelog(meal: any) {
@@ -788,21 +802,60 @@ function LogContent() {
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                {analysis.items.map((item, i) => (
-                  <div key={i} className="bg-[var(--surface2)] border border-[var(--border)] rounded-xl px-4 py-3 flex items-center justify-between group">
-                    <div>
-                      <p className="text-sm font-medium" style={{ fontFamily: 'Syne, serif' }}>{item.name}</p>
-                      <p className="text-[10px] font-mono text-[var(--muted)] mt-0.5">{item.quantity} {item.unit} · {Math.round(item.calories)} kcal</p>
+                {analysis.items.map((item, i) => {
+                  const isExpanded = expandedItemIdx === i;
+                  return (
+                    <div key={i} className="bg-[var(--surface2)] border rounded-xl overflow-hidden transition-all"
+                      style={{ borderColor: isExpanded ? 'rgba(232,160,48,0.4)' : 'var(--border)' }}>
+                      <div className="px-4 py-3 flex items-center justify-between group cursor-pointer"
+                        onClick={() => setExpandedItemIdx(isExpanded ? null : i)}>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium" style={{ fontFamily: 'Syne, serif' }}>{item.name}</p>
+                          <p className="text-[10px] font-mono text-[var(--muted)] mt-0.5">{item.quantity} {item.unit} · {Math.round(item.calories)} kcal</p>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-semibold" style={{ color: isExpanded ? 'var(--gold-1)' : 'var(--muted2)' }}>
+                            {isExpanded ? 'collapse' : 'edit'}
+                          </span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); removeItem(i); }}
+                            title="Remove this item"
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--muted2)] hover:text-[var(--red)] hover:bg-[rgba(224,92,92,0.08)] transition-all text-base font-bold"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <div className="px-4 pb-3 pt-1 grid grid-cols-3 gap-2 animate-scale-in" style={{ borderTop: '1px solid var(--border)' }}>
+                          {[
+                            { label: 'Cal', field: 'calories', val: item.calories, unit: 'kcal', color: 'var(--accent)' },
+                            { label: 'Protein', field: 'protein_g', val: item.protein_g, unit: 'g', color: 'var(--blue)' },
+                            { label: 'Carbs', field: 'carbs_g', val: item.carbs_g, unit: 'g', color: 'var(--accent)' },
+                            { label: 'Fat', field: 'fat_g', val: item.fat_g, unit: 'g', color: '#e8885a' },
+                            { label: 'Fiber', field: 'fiber_g', val: item.fiber_g, unit: 'g', color: 'var(--green)' },
+                            { label: 'Sugar', field: 'sugar_g', val: item.sugar_g, unit: 'g', color: 'var(--red)' },
+                          ].map(({ label, field, val, unit, color }) => (
+                            <div key={field} className="flex flex-col gap-0.5">
+                              <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>{label}</span>
+                              <div className="flex items-baseline gap-0.5">
+                                <input
+                                  type="number"
+                                  value={Math.round(val || 0)}
+                                  onChange={e => updateItemNutrient(i, field, Number(e.target.value) || 0)}
+                                  className="w-full bg-white border rounded-lg px-2 py-1.5 text-sm font-bold outline-none focus:border-[rgba(232,160,48,0.5)] transition-colors"
+                                  style={{ color, fontFamily: 'var(--font-display)', borderColor: 'var(--border)' }}
+                                  min="0"
+                                />
+                                <span className="text-[9px] shrink-0" style={{ color: 'var(--muted)' }}>{unit}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <button
-                      onClick={() => removeItem(i)}
-                      title="Remove this item"
-                      className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--muted2)] hover:text-[var(--red)] hover:bg-[rgba(224,92,92,0.08)] transition-all text-base font-bold"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
